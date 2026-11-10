@@ -180,7 +180,29 @@ usuario 1 ──── 0..1 abogado        movimiento (independiente)
 - "Retención fiscal" se guarda como `EGRESO`. En la pantalla aparece en la tabla de ingresos con signo "−" (como en el diseño original), cuenta en el neto y **no** entra en las gráficas de barras ni en la dona de gastos.
 - Los datos de prueba reproducen las cifras del diseño original en agosto, septiembre y octubre de 2026.
 
-<!-- Tablas de Danna -->
+### Tablas de Danna
+
+```
+usuario 1 ──── 0..1 cliente
+abogado 1 ──── *    cliente
+cliente 1 ──── *    caso ──── 1 abogado
+caso    1 ──── *    carpeta 1 ──── * liga
+abogado 1 ──── *    nota
+```
+
+| Tabla | Campos | Notas |
+|---|---|---|
+| `cliente` | id, usuario_id (FK única → `usuario`), abogado_id (FK → `abogado`), nombre, edad, estudios, ine, email, telefono, descripcion, avance (0–100), honorarios (DECIMAL 12,2), drive_url, comentario (TEXT), estado (`Activo`/`Inactivo`) | `comentario` es el texto que el cliente escucha con síntesis de voz; `drive_url` es el enlace a sus documentos |
+| `caso` | id, numero_expediente (único), cliente_id (FK), abogado_id (FK), materia, estado (`Activo`, `EnProceso`, `Ganado`, `Perdido`, `Cancelado`), fecha_inicio, fecha_fin, drive_url | El backend genera `numero_expediente` (`EXP-0001`, …) |
+| `carpeta` | id, caso_id (FK), numero, materia, proyecto, estado, liga_url, fecha | Carpetas del drive del caso |
+| `liga` | id, carpeta_id (FK), nombre, url | Enlaces guardados dentro de una carpeta |
+| `nota` | id, abogado_id (FK), titulo, contenido (TEXT), completada, fecha | Notas privadas del abogado |
+
+**Reglas:**
+- `materia` acepta las 18 materias del formulario original: Civil, Penal, Mercantil, Familiar, Laboral, Administrativo, Agrario, Constitucional, Fiscal / Tributario, Ambiental, Internacional, Corporativo, Inmobiliario, Migratorio, Seguridad Social, Propiedad Intelectual, Concursal / Quiebras y Electoral. Se guarda como texto y se valida en el servicio.
+- Cuando un caso pasa a `Ganado`, `Perdido` o `Cancelado` y no tiene `fecha_fin`, el backend la llena con la fecha del día. Esos tres estados forman el archivo histórico.
+- Al borrar un caso se borran sus carpetas, y al borrar una carpeta se borran sus ligas (`ON DELETE CASCADE`).
+- No hay tabla de documentos: los documentos del cliente se consultan con el enlace a Drive (`cliente.drive_url` o `caso.drive_url`), como en el diseño original.
 
 <!-- Tablas de Luisa -->
 

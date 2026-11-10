@@ -442,6 +442,169 @@ Respuesta de `GET /abogados/{id}` (y de cada elemento de `GET /abogados`):
 - conteos reales de abogados, clientes, casos activos y mensajes;
 - la lista de rutas de la API con su método.
 
-<!-- Endpoints de Danna -->
+### Endpoints de Danna
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/clientes?abogadoId=&q=` | Listar clientes (filtros opcionales) |
+| GET | `/clientes/{id}` | Detalle de un cliente |
+| POST | `/clientes` | Crear cliente y su usuario |
+| PUT | `/clientes/{id}` | Editar cliente (incluye avance y comentario) |
+| DELETE | `/clientes/{id}` | Eliminar cliente y su usuario |
+| GET | `/casos?abogadoId=&clienteId=&materia=&estado=&q=` | Listar casos (filtros opcionales) |
+| GET | `/casos/historico?estado=&q=` | Casos cerrados (`Ganado`, `Perdido`, `Cancelado`) |
+| GET | `/casos/{id}` | Detalle de un caso |
+| POST | `/casos` | Crear caso (genera el número de expediente) |
+| PUT | `/casos/{id}` | Editar caso |
+| DELETE | `/casos/{id}` | Eliminar caso (y sus carpetas y ligas) |
+| GET | `/casos/{id}/carpetas` | Carpetas del caso |
+| POST | `/casos/{id}/carpetas` | Crear carpeta |
+| PUT | `/carpetas/{id}` | Editar carpeta |
+| DELETE | `/carpetas/{id}` | Eliminar carpeta (y sus ligas) |
+| GET | `/carpetas/{id}/ligas` | Ligas de la carpeta |
+| POST | `/carpetas/{id}/ligas` | Agregar liga |
+| DELETE | `/ligas/{id}` | Eliminar liga |
+| GET | `/notas?abogadoId=` | Notas del abogado |
+| POST | `/notas` | Crear nota |
+| PUT | `/notas/{id}` | Editar nota o marcarla como completada |
+| DELETE | `/notas/{id}` | Eliminar nota |
+
+#### Clientes
+
+`POST /clientes`
+
+```json
+{
+    "abogadoId": 1,
+    "nombre": "Carlos Vega",
+    "edad": 34,
+    "estudios": "Ingeniería",
+    "ine": "VECC840312",
+    "email": "carlos@mail.com",
+    "telefono": "55 1111 2222",
+    "estado": "Activo",
+    "username": "cvega",
+    "password": "cliente123",
+    "descripcion": "Disputa de propiedad inmueble",
+    "avance": 65,
+    "honorarios": 45000,
+    "driveUrl": "",
+    "comentario": "Hola Carlos, tu caso avanza bien..."
+}
+```
+
+Respuesta de `GET /clientes/{id}` (y de cada elemento de `GET /clientes`):
+
+```json
+{
+    "id": 1,
+    "usuarioId": 4,
+    "username": "cvega",
+    "abogadoId": 1,
+    "abogadoNombre": "Dr. Juan Ramírez",
+    "nombre": "Carlos Vega",
+    "edad": 34,
+    "estudios": "Ingeniería",
+    "ine": "VECC840312",
+    "email": "carlos@mail.com",
+    "telefono": "55 1111 2222",
+    "estado": "Activo",
+    "descripcion": "Disputa de propiedad inmueble",
+    "avance": 65,
+    "honorarios": 45000,
+    "driveUrl": "",
+    "comentario": "Hola Carlos, tu caso avanza bien..."
+}
+```
+
+- `q` busca en el nombre del cliente (como el buscador original).
+- `PUT /clientes/{id}` usa el mismo cuerpo. `password` es opcional: si llega vacío, la contraseña no cambia.
+- `POST` también crea la notificación "{abogado} agregó a {cliente}" para el admin (usa el servicio de notificaciones de Luisa).
+- `400` si falta el nombre, el abogado, el usuario o la contraseña (al crear), o si `avance` no está entre 0 y 100 o `honorarios` es negativo.
+- `404` si el cliente o el abogado no existen; `409` si el `username` ya existe.
+- `DELETE` → `409` si el cliente todavía tiene casos.
+
+#### Casos
+
+`POST /casos` (mismo formato para `PUT /casos/{id}`)
+
+```json
+{ "clienteId": 1, "abogadoId": 1, "materia": "Civil", "estado": "Activo", "driveUrl": "" }
+```
+
+Respuesta de `GET /casos/{id}` (y de cada elemento de las listas):
+
+```json
+{
+    "id": 1,
+    "numeroExpediente": "EXP-0001",
+    "clienteId": 1,
+    "clienteNombre": "Carlos Vega",
+    "abogadoId": 1,
+    "abogadoNombre": "Dr. Juan Ramírez",
+    "materia": "Civil",
+    "estado": "Activo",
+    "fechaInicio": "2025-03-15",
+    "fechaFin": null,
+    "driveUrl": ""
+}
+```
+
+- `POST` genera `numeroExpediente` con el siguiente número disponible (`EXP-0006` con los datos de prueba) y pone `fechaInicio` con la fecha del día.
+- Si el estado es `Ganado`, `Perdido` o `Cancelado` y no hay `fechaFin`, se llena con la fecha del día.
+- En `GET /casos`, `q` busca en el número de expediente y el nombre del cliente.
+- En `GET /casos/historico`, `estado` puede ser `Ganado`, `Perdido` o `Cancelado` (vacío = los tres), y `q` busca en expediente, cliente y abogado. Se ordena por `fechaFin` (más reciente primero).
+- `400` si falta un campo, si la materia no es una de las 18, si el estado no es válido o si el cliente no pertenece al abogado.
+- `404` si el caso, el cliente o el abogado no existen.
+
+#### Carpetas y ligas
+
+`POST /casos/{id}/carpetas` (mismo formato para `PUT /carpetas/{id}`)
+
+```json
+{ "numero": "001", "materia": "Civil", "proyecto": "Disputa Inmueble", "estado": "Activo", "ligaUrl": "https://drive.google.com" }
+```
+
+Respuesta:
+
+```json
+{ "id": 1, "casoId": 1, "numero": "001", "materia": "Civil", "proyecto": "Disputa Inmueble", "estado": "Activo", "ligaUrl": "https://drive.google.com", "fecha": "2025-03-16" }
+```
+
+`POST /carpetas/{id}/ligas`
+
+```json
+{ "nombre": "Escritura", "url": "https://drive.google.com/escritura" }
+```
+
+Respuesta: `{ "id": 1, "carpetaId": 1, "nombre": "Escritura", "url": "https://drive.google.com/escritura" }`
+
+- La carpeta toma la fecha del día al crearse.
+- La liga requiere `url`; si no trae `nombre`, se usa la URL como nombre (como en el diseño original).
+- `400` si falta la URL de la liga; `404` si el caso, la carpeta o la liga no existen.
+
+#### Notas
+
+`POST /notas`
+
+```json
+{ "abogadoId": 1, "titulo": "Preparar audiencia", "contenido": "Revisar contrato de arrendamiento" }
+```
+
+`PUT /notas/{id}`
+
+```json
+{ "titulo": "Preparar audiencia", "contenido": "Revisar contrato de arrendamiento", "completada": true }
+```
+
+Respuesta:
+
+```json
+{ "id": 1, "abogadoId": 1, "titulo": "Preparar audiencia", "contenido": "Revisar contrato de arrendamiento", "completada": true, "fecha": "2026-11-10" }
+```
+
+- `GET /notas` requiere `abogadoId`: cada abogado solo ve sus notas.
+- Al crearla, `completada` es `false` y `fecha` es la del día.
+- `400` si falta `abogadoId` o el título; `404` si la nota o el abogado no existen.
 
 <!-- Endpoints de Luisa -->

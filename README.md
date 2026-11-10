@@ -200,7 +200,10 @@ usuario 1 ──── 0..1 abogado        movimiento (independiente)
 | Método | Ruta | Descripción |
 |---|---|---|
 | POST | `/sesiones` | Iniciar sesión |
-| PUT | `/usuarios/{id}/password` | Cambiar la contraseña de un usuario (admin) |
+| GET | `/usuarios/{id}` | Datos del perfil del usuario (perfil del administrador) |
+| PUT | `/usuarios/{id}` | Editar nombre, email y teléfono del perfil |
+| PUT | `/usuarios/{id}/password` | Cambiar la contraseña de un usuario |
+| POST | `/usuarios/{id}/foto` | Subir foto del perfil (multipart) |
 | GET | `/abogados` | Listar abogados con sus indicadores |
 | GET | `/abogados/{id}` | Detalle de un abogado (incluye su efectividad) |
 | POST | `/abogados` | Crear abogado y su usuario |

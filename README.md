@@ -24,7 +24,7 @@ En este proyecto se convierte en un sistema funcional de 3 capas, con backend, b
 |---|---|
 | Administrador | Dashboard ejecutivo, Gestión de abogados, Finanzas (reporte PDF), Archivo histórico, Contactos, Calendario |
 | Abogado | Mi dashboard, Mis clientes, Archivos y casos (drive), Mis notas, Contactos, Calendario |
-| Cliente (vista móvil) | Mi caso (anillo de avance, semáforo, comentario con voz, documentos), Chat, Mi perfil |
+| Cliente (vista móvil) | Mi caso (anillo de avance, semáforo, comentario con voz, documentos en Drive), Chat, Mi perfil |
 
 ### Arquitectura
 
@@ -73,14 +73,14 @@ Cada integrante es dueña de sus módulos **completos**: HTML, JS, controlador, 
 | **JS de página** | `login.js`, `admin-dashboard.js`, `admin-abogados.js`, `admin-finanzas.js`, `admin-historico.js` | `abogado-dashboard.js`, `abogado-clientes.js`, `abogado-casos.js`, `abogado-notas.js` | `cliente-caso.js`, `cliente-chat.js`, `cliente-perfil.js`, `admin-calendario.js`, `abogado-calendario.js`, `admin-contactos.js`, `abogado-contactos.js` |
 | **JS compartido** | `api.js`, `sesion.js` | `utilidades.js`, `menu.js` | `chat.js`, `calendario.js` |
 | **Backend** | Sesion, Usuario, Abogado, Dashboard, Finanza, `PlantillaControlador` + `inicio.html` (Thymeleaf) | Cliente, Caso, Carpeta, Nota | Mensaje, Notificacion, Evento, Contacto |
-| **Modelos y repositorios** | Usuario, Abogado, Movimiento | Cliente, Caso, Carpeta, Liga, Documento, Nota | Mensaje, Notificacion, Evento, Contacto |
-| **Tablas** | `usuario`, `abogado`, `movimiento` | `cliente`, `caso`, `carpeta`, `liga`, `documento`, `nota` | `mensaje`, `notificacion`, `evento`, `contacto` |
+| **Modelos y repositorios** | Usuario, Abogado, Movimiento | Cliente, Caso, Carpeta, Liga, Nota | Mensaje, Notificacion, Evento, Contacto |
+| **Tablas** | `usuario`, `abogado`, `movimiento` | `cliente`, `caso`, `carpeta`, `liga`, `nota` | `mensaje`, `notificacion`, `evento`, `contacto` |
 | **General** | Repositorio, proyecto Spring Boot, `estilos.css`, `nginx/jurismagna.conf`, instalación de nginx en el README | Instalación de MySQL y creación de la BD en el README | Cómo correr el backend, probar con CURL y ejecutar las pruebas en el README |
 
 **Dependencias entre módulos:**
 - El histórico (Gustavo) usa `/casos/historico` de Danna.
 - El dashboard del abogado (Danna) usa `/dashboards/abogados/{id}` de Gustavo.
-- La vista del cliente (Luisa) usa `/clientes/{id}` y `/clientes/{id}/documentos` de Danna, y `/abogados/{id}` de Gustavo.
+- La vista del cliente (Luisa) usa `/clientes/{id}` y `/casos?clienteId=` de Danna, y `/abogados/{id}` de Gustavo.
 
 **Archivos compartidos (partes iguales):** `README.md`, `database/schema.sql`, `data.sql` y `curl/pruebas.sh`. Cada quien agrega su parte en una sección con su nombre.
 

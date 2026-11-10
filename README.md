@@ -150,3 +150,30 @@ Cada fase se divide en una subfase por integrante y se trabaja en una rama por s
 | R-08 | El uso de IA se documenta; las pruebas unitarias las hace cada integrante |
 | R-09 | Entrega el 23 de noviembre de 2026 |
 | R-10 | Thymeleaf en al menos una vista del backend |
+
+---
+
+## 6. Diseño de la base de datos
+
+Base de datos **`jurismagna`**. Hibernate crea las tablas (`ddl-auto=update`). La estructura completa está en [`database/schema.sql`](database/schema.sql).
+
+### Tablas de Gustavo
+
+```
+usuario 1 ──── 0..1 abogado        movimiento (independiente)
+```
+
+| Tabla | Campos | Notas |
+|---|---|---|
+| `usuario` | id, username (único), password_hash, rol (`ADMIN`, `ABOGADO`, `CLIENTE`), activo, nombre, email, telefono, foto_url | Cuentas de acceso de los tres roles. `nombre`, `email`, `telefono` y `foto_url` (opcionales) son para el perfil del administrador |
+| `abogado` | id, usuario_id (FK única → `usuario`), nombre, edad, especialidad, estudios, experiencia, cedula, email, telefono, foto_url, estado (`Activo`/`Inactivo`) | Datos profesionales y de contacto del abogado |
+| `movimiento` | id, tipo (`INGRESO`/`EGRESO`), concepto, monto (DECIMAL 12,2), fecha | Conceptos: Honorarios, Consultas y asesorías, Nómina, Renta, Servicios, Otros, Retención fiscal |
+
+**Reglas de `movimiento`:**
+- `monto` siempre es positivo; el `tipo` dice si suma o resta.
+- "Retención fiscal" se guarda como `EGRESO`. En la pantalla aparece en la tabla de ingresos con signo "−" (como en el diseño original), cuenta en el neto y **no** entra en las gráficas de barras ni en la dona de gastos.
+- Los datos de prueba reproducen las cifras del diseño original en agosto, septiembre y octubre de 2026.
+
+<!-- Tablas de Danna -->
+
+<!-- Tablas de Luisa -->

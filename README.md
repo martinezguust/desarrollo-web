@@ -121,7 +121,20 @@ Cada fase se divide en una subfase por integrante y se trabaja en una rama por s
 | RF-07 | El abogado crea y actualiza casos (materia, estado, enlace de expediente) | CRUD de `/casos`; el backend genera el número de expediente (`EXP-0001`, `EXP-0002`, …). En "Archivos y casos" se filtra por materia y texto, y cada caso tiene su drive de carpetas y ligas (`/casos/{id}/carpetas`, `/carpetas/{id}/ligas`) |
 | RF-10 | Notas privadas del abogado (título, contenido) | CRUD de `/notas`; cada abogado solo ve las suyas (`GET /notas?abogadoId=`) y puede marcarlas como completadas |
 
-<!-- Requerimientos de Luisa (RF-08, RF-09, RF-11 a RF-14) -->
+### Requerimientos funcionales — Luisa
+
+| ID | Requisito | Cómo se cumple |
+|---|---|---|
+| RF-08 | Calendario mensual con eventos, audiencias y días festivos mexicanos | `calendario.js` dibuja el mes y marca los días de descanso obligatorio de la Ley Federal del Trabajo (se calculan en el navegador, no se guardan en la BD). Los eventos salen de `GET /eventos?alcance=&anio=&mes=`; el admin y cada abogado tienen su propia agenda |
+| RF-09 | Agregar, editar y eliminar eventos (título, hora, lugar, descripción, color) | CRUD de `/eventos` desde el panel del día y el modal de evento |
+| RF-11 | Mensajes de texto, notas de voz y archivos entre abogado y cliente | `chat.js` envía texto (`POST /mensajes`) y audio grabado con MediaRecorder, imágenes o archivos (`POST /mensajes/archivos`, multipart). Hay dos tipos de conversación: abogado ↔ cliente y admin ↔ abogado. Al recibir un mensaje, el abogado recibe una notificación |
+| RF-12 | El cliente ve su avance en un anillo SVG con color según el estado | `cliente-caso.html` toma el avance de `GET /clientes/{id}` y el estado de su caso de `GET /casos?clienteId=` |
+| RF-13 | El cliente escucha el comentario de su abogado con síntesis de voz en español | Botón "Escuchar comentarios" con `speechSynthesis` (`es-MX`) sobre `cliente.comentario` |
+| RF-14 | El cliente consulta el perfil de su abogado (estudios, especialidad, efectividad) | Modal "Perfil del Abogado" desde Mi caso, con `GET /abogados/{id}` |
+
+**Notas de la vista del cliente y contactos:**
+- En pantallas grandes la vista del cliente conserva el marco de iPhone; en celulares reales (menos de 500 px de ancho) el marco se quita con una media query.
+- Los contactos manuales del admin no tienen chat: solo muestran sus datos y el botón de eliminar.
 
 | ID | Requisito | Responsable |
 |---|---|---|

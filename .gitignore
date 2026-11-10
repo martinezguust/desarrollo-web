@@ -16,3 +16,6 @@ backend/uploads/
 # Editores
 .vscode/
 .idea/
+
+# Configuración local de Claude Code
+.claude/

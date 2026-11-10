@@ -220,14 +220,6 @@ usuario 1 ──── 0..1 abogado        movimiento (independiente)
 | DELETE | `/movimientos/{id}` | Eliminar movimiento |
 | GET | `/` | Página de estado del backend (Thymeleaf) |
 
-**Propuesta pendiente de confirmar** (para guardar el perfil del administrador):
-
-| Método | Ruta | Descripción |
-|---|---|---|
-| GET | `/usuarios/{id}` | Datos del perfil (sin contraseña) |
-| PUT | `/usuarios/{id}` | Editar nombre, email y teléfono |
-| POST | `/usuarios/{id}/foto` | Subir foto (multipart) |
-
 #### Sesiones
 
 `POST /sesiones`

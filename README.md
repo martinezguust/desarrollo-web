@@ -177,3 +177,248 @@ usuario 1 ──── 0..1 abogado        movimiento (independiente)
 <!-- Tablas de Danna -->
 
 <!-- Tablas de Luisa -->
+
+---
+
+## 7. Endpoints REST
+
+- En Spring las rutas son directas (`/abogados`). El frontend llama a `/api/abogados` y **nginx quita el `/api`**.
+- Los datos van en **JSON** (cuerpo) o en **query string** (filtros).
+- Los errores siempre llegan como `{ "error": "mensaje" }` con su código HTTP:
+
+| Código | Cuándo |
+|---|---|
+| 400 | Datos inválidos o incompletos |
+| 401 | Usuario, contraseña o rol incorrectos |
+| 404 | No existe el registro |
+| 409 | Conflicto (usuario repetido, registro con datos ligados) |
+
+- **Nunca** se devuelve `password_hash`.
+
+### Endpoints de Gustavo
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| POST | `/sesiones` | Iniciar sesión |
+| PUT | `/usuarios/{id}/password` | Cambiar la contraseña de un usuario (admin) |
+| GET | `/abogados` | Listar abogados con sus indicadores |
+| GET | `/abogados/{id}` | Detalle de un abogado (incluye su efectividad) |
+| POST | `/abogados` | Crear abogado y su usuario |
+| PUT | `/abogados/{id}` | Editar datos del abogado |
+| DELETE | `/abogados/{id}` | Eliminar abogado y su usuario |
+| PUT | `/abogados/{id}/password` | Cambiar contraseña del abogado |
+| POST | `/abogados/{id}/foto` | Subir foto (multipart) |
+| GET | `/dashboards/admin` | KPIs del dashboard ejecutivo |
+| GET | `/dashboards/abogados/{id}` | KPIs del dashboard del abogado |
+| GET | `/finanzas?meses=3` | Ingresos y egresos por mes y por concepto |
+| GET | `/movimientos` | Listar movimientos |
+| POST | `/movimientos` | Crear movimiento |
+| PUT | `/movimientos/{id}` | Editar movimiento |
+| DELETE | `/movimientos/{id}` | Eliminar movimiento |
+| GET | `/` | Página de estado del backend (Thymeleaf) |
+
+**Propuesta pendiente de confirmar** (para guardar el perfil del administrador):
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/usuarios/{id}` | Datos del perfil (sin contraseña) |
+| PUT | `/usuarios/{id}` | Editar nombre, email y teléfono |
+| POST | `/usuarios/{id}/foto` | Subir foto (multipart) |
+
+#### Sesiones
+
+`POST /sesiones`
+
+```json
+{ "username": "jramirez", "password": "abogado123", "rol": "ABOGADO" }
+```
+
+Respuesta `200`:
+
+```json
+{ "usuarioId": 2, "rol": "ABOGADO", "nombre": "Dr. Juan Ramírez", "perfilId": 1 }
+```
+
+- `perfilId` es el `id` en la tabla `abogado` o `cliente`; para el admin es `null`.
+- `401` si el usuario no existe, la contraseña no coincide, el rol no corresponde o el usuario está inactivo.
+
+#### Usuarios
+
+`PUT /usuarios/{id}/password`
+
+```json
+{ "password": "nuevaClave" }
+```
+
+Respuesta `200`: `{ "mensaje": "Contraseña actualizada" }`. `400` si tiene menos de 4 caracteres, `404` si no existe.
+
+#### Abogados
+
+`POST /abogados` (también es el formato de `PUT /abogados/{id}`, que no lleva `username` ni `password`)
+
+```json
+{
+    "nombre": "Dr. Juan Ramírez",
+    "edad": 45,
+    "especialidad": "Derecho Civil",
+    "estudios": "LLM Harvard",
+    "experiencia": "20 años",
+    "cedula": "12345678",
+    "email": "juan@jurismagna.mx",
+    "telefono": "55 1234 5678",
+    "username": "jramirez",
+    "password": "abogado123"
+}
+```
+
+Respuesta de `GET /abogados/{id}` (y de cada elemento de `GET /abogados`):
+
+```json
+{
+    "id": 1,
+    "usuarioId": 2,
+    "username": "jramirez",
+    "nombre": "Dr. Juan Ramírez",
+    "edad": 45,
+    "especialidad": "Derecho Civil",
+    "estudios": "LLM Harvard",
+    "experiencia": "20 años",
+    "cedula": "12345678",
+    "email": "juan@jurismagna.mx",
+    "telefono": "55 1234 5678",
+    "fotoUrl": "/uploads/abogados/1.jpg",
+    "estado": "Activo",
+    "casosActivos": 2,
+    "totalCasos": 3,
+    "casosGanados": 1,
+    "clientes": 2,
+    "efectividad": 33
+}
+```
+
+- `efectividad` = ganados / total de casos × 100 (fórmula de la tabla y del perfil del diseño original).
+- `casosActivos` cuenta los casos `Activo` y `EnProceso`.
+- `POST` → `400` si falta el nombre, el usuario o la contraseña; `409` si el `username` ya existe.
+- `DELETE` → `409` si el abogado todavía tiene clientes o casos asignados.
+- `PUT /abogados/{id}/password` usa el mismo cuerpo y reglas que `PUT /usuarios/{id}/password`.
+- `POST /abogados/{id}/foto` recibe el campo `foto` (JPG, PNG o WEBP) y responde `{ "fotoUrl": "/uploads/abogados/1.jpg" }`.
+
+#### Dashboards
+
+`GET /dashboards/admin` — ejemplo con los datos de prueba:
+
+```json
+{
+    "personal": 5,
+    "abogados": 2,
+    "casos": { "total": 5, "activos": 2, "enProceso": 1, "ganados": 1, "perdidos": 1 },
+    "efectividadCerrados": 50,
+    "clientesActivos": 3,
+    "totalClientes": 3,
+    "honorariosTotales": 168000,
+    "finanzas": {
+        "mes": "2026-10",
+        "nombreMes": "Octubre",
+        "nombreMesAnterior": "Septiembre",
+        "capitalOperativo": 1210800,
+        "capitalTendencia": 48.8,
+        "rentabilidad": 45.1,
+        "rentabilidadTendencia": -20.2,
+        "facturacionMes": 880000,
+        "facturacionTendencia": 27.5,
+        "cobradoMes": 700000,
+        "porcentajeCobrado": 79.5,
+        "cobrosPendientes": 0,
+        "cobrosPendientesCambio": 0
+    }
+}
+```
+
+| Campo | Cálculo |
+|---|---|
+| `personal` | abogados + clientes (como en el diseño original) |
+| `casos.activos` / `enProceso` / `ganados` / `perdidos` | Conteo por estado del caso |
+| `efectividadCerrados` | ganados / (ganados + perdidos) × 100 (fórmula de la dona del diseño original) |
+| `honorariosTotales` | Σ `cliente.honorarios` |
+| `mes` | Último mes que tiene movimientos |
+| `capitalOperativo` | Σ INGRESO − Σ EGRESO de todos los movimientos hasta ese mes |
+| `capitalTendencia` | % de cambio contra el capital al cierre del mes anterior |
+| `rentabilidad` | (ingresos − egresos) / ingresos del mes × 100 |
+| `rentabilidadTendencia` | Diferencia en puntos porcentuales contra el mes anterior |
+| `facturacionMes` / `facturacionTendencia` | Σ INGRESO del mes y su % de cambio contra el mes anterior |
+| `cobradoMes` / `porcentajeCobrado` | Σ INGRESO "Honorarios" del mes y su % sobre la facturación del mes |
+| `cobrosPendientes` | Σ `cliente.honorarios` − Σ INGRESO "Honorarios"; si da negativo, `0` |
+| `cobrosPendientesCambio` | Diferencia contra los pendientes al cierre del mes anterior |
+
+`GET /dashboards/abogados/{id}`:
+
+```json
+{
+    "abogadoId": 1,
+    "casos": { "total": 3, "activos": 1, "enProceso": 1, "ganados": 1, "perdidos": 0 },
+    "efectividad": 33,
+    "efectividadCerrados": 100,
+    "clientes": 2,
+    "satisfaccion": 53
+}
+```
+
+- `efectividad` = ganados / total × 100 (KPIs y barras de rendimiento del diseño original).
+- `efectividadCerrados` = ganados / (ganados + perdidos) × 100 (dona del diseño original).
+- `satisfaccion` = mínimo entre `efectividad + 20` y 100 (fórmula del diseño original; la página la muestra sobre 5.0).
+- `404` si el abogado no existe.
+
+#### Finanzas y movimientos
+
+`GET /finanzas?meses=3` — los últimos `meses` meses que terminan en el último mes con movimientos (por defecto 3):
+
+```json
+{
+    "meses": [
+        { "mes": "2026-08", "nombre": "Agosto", "ingresos": 600000, "egresos": 237000 },
+        { "mes": "2026-09", "nombre": "Septiembre", "ingresos": 690000, "egresos": 239200 },
+        { "mes": "2026-10", "nombre": "Octubre", "ingresos": 880000, "egresos": 243000 }
+    ],
+    "gastosPorConcepto": { "Nómina": 540000, "Renta": 135000, "Servicios": 44200, "Otros": 0 },
+    "totalIngresos": 2170000,
+    "retencionFiscal": 240000,
+    "ingresosNetos": 1930000,
+    "totalEgresos": 719200,
+    "neto": 1210800,
+    "fondosDisponibles": 1210800,
+    "rentabilidad": 45.1,
+    "rentabilidadTendencia": -20.2,
+    "registroIngresos": [
+        { "id": 1, "tipo": "INGRESO", "concepto": "Honorarios", "monto": 480000, "fecha": "2026-08-15" }
+    ],
+    "registroEgresos": [
+        { "id": 3, "tipo": "EGRESO", "concepto": "Nómina", "monto": 180000, "fecha": "2026-08-30" }
+    ]
+}
+```
+
+- `meses[].egresos`, `gastosPorConcepto` y `totalEgresos` **no incluyen** la retención fiscal (son los gastos operativos de las gráficas y de la tabla de egresos).
+- `registroIngresos` trae los INGRESO y la retención fiscal (que se muestra con "−"); `registroEgresos` trae los demás EGRESO.
+- `ingresosNetos` = `totalIngresos` − `retencionFiscal`; `neto` = `ingresosNetos` − `totalEgresos`.
+- `fondosDisponibles` es el mismo valor que `capitalOperativo` del dashboard.
+- `400` si `meses` no está entre 1 y 12.
+
+`POST /movimientos` (mismo formato para `PUT /movimientos/{id}`):
+
+```json
+{ "tipo": "INGRESO", "concepto": "Honorarios", "monto": 480000, "fecha": "2026-08-15" }
+```
+
+- `400` si falta un campo, si `monto` ≤ 0 o si el concepto no corresponde al tipo: Honorarios y Consultas y asesorías son `INGRESO`; Nómina, Renta, Servicios y Retención fiscal son `EGRESO`; Otros puede ser cualquiera.
+- `404` en `PUT` y `DELETE` si no existe.
+
+#### Página de estado (Thymeleaf)
+
+`GET /` muestra `templates/inicio.html` con:
+- el nombre del sistema y el estado "Backend funcionando";
+- conteos reales de abogados, clientes, casos activos y mensajes;
+- la lista de rutas de la API con su método.
+
+<!-- Endpoints de Danna -->
+
+<!-- Endpoints de Luisa -->

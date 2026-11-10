@@ -121,7 +121,21 @@ Cada fase se divide en una subfase por integrante y se trabaja en una rama por s
 | RF-07 | El abogado crea y actualiza casos (materia, estado, enlace de expediente) | CRUD de `/casos`; el backend genera el número de expediente (`EXP-0001`, `EXP-0002`, …). En "Archivos y casos" se filtra por materia y texto, y cada caso tiene su drive de carpetas y ligas (`/casos/{id}/carpetas`, `/carpetas/{id}/ligas`) |
 | RF-10 | Notas privadas del abogado (título, contenido) | CRUD de `/notas`; cada abogado solo ve las suyas (`GET /notas?abogadoId=`) y puede marcarlas como completadas |
 
-<!-- Requerimientos de Luisa (RF-08, RF-09, RF-11 a RF-14) -->
+### Requerimientos funcionales — Luisa
+
+| ID | Requisito | Cómo se cumple |
+|---|---|---|
+| RF-08 | Calendario mensual con eventos, audiencias y días festivos mexicanos | `calendario.js` dibuja el mes y marca los días de descanso obligatorio de la Ley Federal del Trabajo (se calculan en el navegador, no se guardan en la BD). Los eventos salen de `GET /eventos?alcance=&anio=&mes=`; el admin y cada abogado tienen su propia agenda |
+| RF-09 | Agregar, editar y eliminar eventos (título, hora, lugar, descripción, color) | CRUD de `/eventos` desde el panel del día y el modal de evento |
+| RF-11 | Mensajes de texto, notas de voz y archivos entre abogado y cliente | `chat.js` envía texto (`POST /mensajes`) y audio grabado con MediaRecorder, imágenes o archivos (`POST /mensajes/archivos`, multipart). Hay dos tipos de conversación: abogado ↔ cliente y admin ↔ abogado. Al recibir un mensaje, el abogado recibe una notificación |
+| RF-12 | El cliente ve su avance en un anillo SVG con color según el estado | `cliente-caso.html` toma el avance de `GET /clientes/{id}` y el estado de su caso de `GET /casos?clienteId=` |
+| RF-13 | El cliente escucha el comentario de su abogado con síntesis de voz en español | Botón "Escuchar comentarios" con `speechSynthesis` (`es-MX`) sobre `cliente.comentario` |
+| RF-14 | El cliente consulta el perfil de su abogado (estudios, especialidad, efectividad) | Modal "Perfil del Abogado" desde Mi caso, con `GET /abogados/{id}` |
+
+**Notas de la vista del cliente y contactos:**
+- En pantallas grandes la vista del cliente conserva el marco de iPhone; en celulares reales (menos de 500 px de ancho) el marco se quita con una media query.
+- Los contactos manuales del admin no tienen chat: solo muestran sus datos y el botón de eliminar.
+**reglas confirmadas -luisa
 
 | ID | Requisito | Responsable |
 |---|---|---|
@@ -204,7 +218,27 @@ abogado 1 ──── *    nota
 - Al borrar un caso se borran sus carpetas, y al borrar una carpeta se borran sus ligas (`ON DELETE CASCADE`).
 - No hay tabla de documentos: los documentos del cliente se consultan con el enlace a Drive (`cliente.drive_url` o `caso.drive_url`), como en el diseño original.
 
-<!-- Tablas de Luisa -->
+### Tablas de Luisa
+
+```
+usuario 1 ──── * notificacion
+usuario 1 ──── * evento
+mensaje (agrupado por hilo)      contacto (propietario_tipo + propietario_id)
+```
+
+| Tabla | Campos | Notas |
+|---|---|---|
+| `mensaje` | id, hilo, remitente (`abogado`/`cliente`/`admin`), tipo (`texto`/`audio`/`img`/`file`), texto, archivo_url, nombre_archivo, fecha_hora, leido | `hilo` identifica la conversación: `cliente-{clienteId}` (abogado ↔ cliente) o `admin-abogado-{abogadoId}` (admin ↔ abogado) |
+| `notificacion` | id, usuario_id (FK → `usuario`), mensaje, leida, fecha_hora | Avisos de la campana del admin y del abogado |
+| `evento` | id, titulo, fecha, hora, lugar, descripcion, color, alcance, usuario_id (FK → `usuario`) | `alcance` es `admin` o `abogado-{id}`; cada agenda solo ve sus eventos |
+| `contacto` | id, propietario_tipo (`ADMIN`/`ABOGADO`), propietario_id, nombre, telefono, email, notas | Contactos agregados a mano; `propietario_id` es el id del usuario dueño |
+
+**Reglas:**
+- Los audios, imágenes y archivos del chat se guardan en `backend/uploads/mensajes/`; la tabla solo guarda su URL y el nombre original.
+- `leido` lo marca quien recibe el mensaje al abrir la conversación; con eso se dibujan los puntos rojos de "no leído".
+- `color` es uno de los 6 del selector original: `#D4AF37`, `#27AE60`, `#2980B9`, `#C0392B`, `#8E44AD`, `#E67E22`.
+- Los días festivos no se guardan: los calcula `calendario.js` (1 de enero, primer lunes de febrero, tercer lunes de marzo, 1 de mayo, 16 de septiembre, tercer lunes de noviembre, 25 de diciembre y el 1 de octubre de cada cambio de Poder Ejecutivo federal).
+- En la página de contactos del abogado, el admin y sus clientes se muestran automáticamente (salen de `usuario` y `cliente`); `contacto` solo guarda los que se agregan a mano.
 
 ---
 
@@ -607,4 +641,118 @@ Respuesta:
 - Al crearla, `completada` es `false` y `fecha` es la del día.
 - `400` si falta `abogadoId` o el título; `404` si la nota o el abogado no existen.
 
-<!-- Endpoints de Luisa -->
+### Endpoints de Luisa
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/mensajes?hilo=` | Mensajes de un hilo |
+| POST | `/mensajes` | Enviar mensaje de texto (JSON) |
+| POST | `/mensajes/archivos` | Enviar audio, imagen o archivo (multipart) |
+| PUT | `/mensajes/leidos?hilo=&lector=` | Marcar como leídos los mensajes que recibió `lector` en el hilo |
+| DELETE | `/mensajes/{id}` | Eliminar mensaje (y su archivo) |
+| GET | `/notificaciones?usuarioId=` | Notificaciones del usuario |
+| POST | `/notificaciones` | Crear notificación |
+| PUT | `/notificaciones/leidas?usuarioId=` | Marcar todas como leídas |
+| DELETE | `/notificaciones/{id}` | Eliminar notificación |
+| GET | `/eventos?alcance=&anio=&mes=` | Eventos de una agenda (del mes, si se indica) |
+| POST | `/eventos` | Crear evento |
+| PUT | `/eventos/{id}` | Editar evento |
+| DELETE | `/eventos/{id}` | Eliminar evento |
+| GET | `/contactos?propietarioTipo=&propietarioId=` | Listar contactos |
+| POST | `/contactos` | Crear contacto |
+| PUT | `/contactos/{id}` | Editar contacto |
+| DELETE | `/contactos/{id}` | Eliminar contacto |
+
+#### Mensajes
+
+`POST /mensajes`
+
+```json
+{ "hilo": "cliente-1", "remitente": "cliente", "texto": "Buenos días, ¿hay novedades de mi caso?" }
+```
+
+`POST /mensajes/archivos` (multipart): campos `hilo`, `remitente`, `tipo` (`audio`, `img` o `file`) y `archivo`.
+
+Respuesta (de los dos `POST` y de cada elemento de `GET /mensajes`):
+
+```json
+{
+    "id": 5,
+    "hilo": "cliente-1",
+    "remitente": "cliente",
+    "tipo": "audio",
+    "texto": null,
+    "archivoUrl": "/uploads/mensajes/5-audio.webm",
+    "nombreArchivo": "audio.webm",
+    "fechaHora": "2026-11-10T09:00:00",
+    "leido": false
+}
+```
+
+- `GET /mensajes` devuelve los mensajes en orden cronológico; `400` si falta `hilo`.
+- El remitente debe pertenecer al hilo: en `cliente-{id}` solo escriben `abogado` y `cliente`; en `admin-abogado-{id}`, `admin` y `abogado`. Si no, `400`.
+- Al enviar, el backend crea la notificación del abogado como en el diseño original: "Nuevo mensaje de {cliente}" o "Nuevo mensaje del Administrador".
+- `PUT /mensajes/leidos` marca como leídos los mensajes del hilo que **no** envió `lector` (`abogado`, `cliente` o `admin`).
+- Archivos de hasta 10 MB. Tipos aceptados: audio `webm`, imágenes y documentos `pdf`, `doc(x)`, `xls(x)`, `ppt(x)` y `txt` (como el selector original). `400` si el archivo falta, pesa más o no es de un tipo permitido.
+- `404` si el mensaje no existe.
+
+#### Notificaciones
+
+`POST /notificaciones`
+
+```json
+{ "usuarioId": 1, "mensaje": "Dr. Juan Ramírez agregó a Carlos Vega" }
+```
+
+Respuesta (y cada elemento de `GET /notificaciones`, de la más reciente a la más antigua):
+
+```json
+{ "id": 1, "usuarioId": 1, "mensaje": "Dr. Juan Ramírez agregó a Carlos Vega", "leida": false, "fechaHora": "2026-11-10T09:00:00" }
+```
+
+- Las notificaciones las crea sobre todo el backend (al crear un cliente o recibir un mensaje); el `POST` queda para pruebas y otros módulos.
+- `400` si falta `usuarioId` o el mensaje; `404` si el usuario o la notificación no existen.
+
+#### Eventos
+
+`POST /eventos` (mismo formato para `PUT /eventos/{id}`)
+
+```json
+{
+    "titulo": "Audiencia Carlos Vega",
+    "fecha": "2026-11-28",
+    "hora": "10:00",
+    "lugar": "Juzgado 5",
+    "descripcion": "Llevar contrato y acta notarial",
+    "color": "#D4AF37",
+    "alcance": "abogado-1",
+    "usuarioId": 2
+}
+```
+
+Respuesta: el mismo objeto con su `id`.
+
+- `GET /eventos` requiere `alcance`; con `anio` y `mes` (1–12) devuelve solo ese mes, ordenado por fecha y hora.
+- Si `titulo` llega vacío se guarda como "Evento" (como en el diseño original).
+- `400` si falta la fecha o el alcance, si `hora` no tiene formato `HH:MM`, si `color` no es uno de los 6 o si `alcance` no es `admin` ni `abogado-{id}`.
+- `404` si el evento no existe.
+
+#### Contactos
+
+`POST /contactos` (mismo formato para `PUT /contactos/{id}`)
+
+```json
+{
+    "propietarioTipo": "ADMIN",
+    "propietarioId": 1,
+    "nombre": "Notaría 12",
+    "telefono": "55 2222 3333",
+    "email": "contacto@notaria12.mx",
+    "notas": "Escrituras"
+}
+```
+
+Respuesta: el mismo objeto con su `id`.
+
+- `GET /contactos` filtra por `propietarioTipo` y `propietarioId` (los dos opcionales).
+- `400` si falta el nombre o el propietario; `404` si el contacto no existe.

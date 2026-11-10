@@ -180,4 +180,70 @@ CREATE TABLE IF NOT EXISTS nota (
 
 -- =====================================================================
 -- Tablas de Luisa: mensaje, notificacion, evento, contacto
+-- (los días festivos se calculan en calendario.js, no se guardan)
 -- =====================================================================
+
+-- Mensajes del chat. hilo identifica la conversación:
+--   cliente-{clienteId}         abogado <-> cliente
+--   admin-abogado-{abogadoId}   admin   <-> abogado
+-- Los audios, imágenes y archivos se guardan en backend/uploads/mensajes/.
+CREATE TABLE IF NOT EXISTS mensaje (
+    id             INT          NOT NULL AUTO_INCREMENT,
+    hilo           VARCHAR(40)  NOT NULL,
+    remitente      ENUM('abogado', 'cliente', 'admin') NOT NULL,
+    tipo           ENUM('texto', 'audio', 'img', 'file') NOT NULL DEFAULT 'texto',
+    texto          TEXT         NULL,
+    archivo_url    VARCHAR(255) NULL,
+    nombre_archivo VARCHAR(150) NULL,
+    fecha_hora     DATETIME     NOT NULL,
+    leido          BOOLEAN      NOT NULL DEFAULT FALSE,
+
+    PRIMARY KEY (id),
+    INDEX idx_mensaje_hilo (hilo)
+);
+
+-- Notificaciones de la campana (admin y abogado).
+CREATE TABLE IF NOT EXISTS notificacion (
+    id         INT          NOT NULL AUTO_INCREMENT,
+    usuario_id INT          NOT NULL,
+    mensaje    VARCHAR(255) NOT NULL,
+    leida      BOOLEAN      NOT NULL DEFAULT FALSE,
+    fecha_hora DATETIME     NOT NULL,
+
+    PRIMARY KEY (id),
+    CONSTRAINT fk_notificacion_usuario FOREIGN KEY (usuario_id) REFERENCES usuario (id) ON DELETE CASCADE
+);
+
+-- Eventos del calendario. alcance separa las agendas:
+--   admin            agenda del administrador
+--   abogado-{id}     agenda de cada abogado
+-- color es uno de: #D4AF37, #27AE60, #2980B9, #C0392B, #8E44AD, #E67E22
+CREATE TABLE IF NOT EXISTS evento (
+    id          INT          NOT NULL AUTO_INCREMENT,
+    titulo      VARCHAR(150) NOT NULL,
+    fecha       DATE         NOT NULL,
+    hora        TIME         NULL,
+    lugar       VARCHAR(150) NULL,
+    descripcion TEXT         NULL,
+    color       VARCHAR(7)   NOT NULL DEFAULT '#D4AF37',
+    alcance     VARCHAR(20)  NOT NULL,
+    usuario_id  INT          NOT NULL,
+
+    PRIMARY KEY (id),
+    INDEX idx_evento_alcance_fecha (alcance, fecha),
+    CONSTRAINT fk_evento_usuario FOREIGN KEY (usuario_id) REFERENCES usuario (id) ON DELETE CASCADE
+);
+
+-- Contactos agregados a mano. propietario_id es el id del usuario dueño.
+CREATE TABLE IF NOT EXISTS contacto (
+    id               INT          NOT NULL AUTO_INCREMENT,
+    propietario_tipo ENUM('ADMIN', 'ABOGADO') NOT NULL,
+    propietario_id   INT          NOT NULL,
+    nombre           VARCHAR(100) NOT NULL,
+    telefono         VARCHAR(20)  NULL,
+    email            VARCHAR(100) NULL,
+    notas            VARCHAR(255) NULL,
+
+    PRIMARY KEY (id),
+    INDEX idx_contacto_propietario (propietario_tipo, propietario_id)
+);

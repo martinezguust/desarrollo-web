@@ -640,4 +640,118 @@ Respuesta:
 - Al crearla, `completada` es `false` y `fecha` es la del día.
 - `400` si falta `abogadoId` o el título; `404` si la nota o el abogado no existen.
 
-<!-- Endpoints de Luisa -->
+### Endpoints de Luisa
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/mensajes?hilo=` | Mensajes de un hilo |
+| POST | `/mensajes` | Enviar mensaje de texto (JSON) |
+| POST | `/mensajes/archivos` | Enviar audio, imagen o archivo (multipart) |
+| PUT | `/mensajes/leidos?hilo=&lector=` | Marcar como leídos los mensajes que recibió `lector` en el hilo |
+| DELETE | `/mensajes/{id}` | Eliminar mensaje (y su archivo) |
+| GET | `/notificaciones?usuarioId=` | Notificaciones del usuario |
+| POST | `/notificaciones` | Crear notificación |
+| PUT | `/notificaciones/leidas?usuarioId=` | Marcar todas como leídas |
+| DELETE | `/notificaciones/{id}` | Eliminar notificación |
+| GET | `/eventos?alcance=&anio=&mes=` | Eventos de una agenda (del mes, si se indica) |
+| POST | `/eventos` | Crear evento |
+| PUT | `/eventos/{id}` | Editar evento |
+| DELETE | `/eventos/{id}` | Eliminar evento |
+| GET | `/contactos?propietarioTipo=&propietarioId=` | Listar contactos |
+| POST | `/contactos` | Crear contacto |
+| PUT | `/contactos/{id}` | Editar contacto |
+| DELETE | `/contactos/{id}` | Eliminar contacto |
+
+#### Mensajes
+
+`POST /mensajes`
+
+```json
+{ "hilo": "cliente-1", "remitente": "cliente", "texto": "Buenos días, ¿hay novedades de mi caso?" }
+```
+
+`POST /mensajes/archivos` (multipart): campos `hilo`, `remitente`, `tipo` (`audio`, `img` o `file`) y `archivo`.
+
+Respuesta (de los dos `POST` y de cada elemento de `GET /mensajes`):
+
+```json
+{
+    "id": 5,
+    "hilo": "cliente-1",
+    "remitente": "cliente",
+    "tipo": "audio",
+    "texto": null,
+    "archivoUrl": "/uploads/mensajes/5-audio.webm",
+    "nombreArchivo": "audio.webm",
+    "fechaHora": "2026-11-10T09:00:00",
+    "leido": false
+}
+```
+
+- `GET /mensajes` devuelve los mensajes en orden cronológico; `400` si falta `hilo`.
+- El remitente debe pertenecer al hilo: en `cliente-{id}` solo escriben `abogado` y `cliente`; en `admin-abogado-{id}`, `admin` y `abogado`. Si no, `400`.
+- Al enviar, el backend crea la notificación del abogado como en el diseño original: "Nuevo mensaje de {cliente}" o "Nuevo mensaje del Administrador".
+- `PUT /mensajes/leidos` marca como leídos los mensajes del hilo que **no** envió `lector` (`abogado`, `cliente` o `admin`).
+- Archivos de hasta 10 MB. Tipos aceptados: audio `webm`, imágenes y documentos `pdf`, `doc(x)`, `xls(x)`, `ppt(x)` y `txt` (como el selector original). `400` si el archivo falta, pesa más o no es de un tipo permitido.
+- `404` si el mensaje no existe.
+
+#### Notificaciones
+
+`POST /notificaciones`
+
+```json
+{ "usuarioId": 1, "mensaje": "Dr. Juan Ramírez agregó a Carlos Vega" }
+```
+
+Respuesta (y cada elemento de `GET /notificaciones`, de la más reciente a la más antigua):
+
+```json
+{ "id": 1, "usuarioId": 1, "mensaje": "Dr. Juan Ramírez agregó a Carlos Vega", "leida": false, "fechaHora": "2026-11-10T09:00:00" }
+```
+
+- Las notificaciones las crea sobre todo el backend (al crear un cliente o recibir un mensaje); el `POST` queda para pruebas y otros módulos.
+- `400` si falta `usuarioId` o el mensaje; `404` si el usuario o la notificación no existen.
+
+#### Eventos
+
+`POST /eventos` (mismo formato para `PUT /eventos/{id}`)
+
+```json
+{
+    "titulo": "Audiencia Carlos Vega",
+    "fecha": "2026-11-28",
+    "hora": "10:00",
+    "lugar": "Juzgado 5",
+    "descripcion": "Llevar contrato y acta notarial",
+    "color": "#D4AF37",
+    "alcance": "abogado-1",
+    "usuarioId": 2
+}
+```
+
+Respuesta: el mismo objeto con su `id`.
+
+- `GET /eventos` requiere `alcance`; con `anio` y `mes` (1–12) devuelve solo ese mes, ordenado por fecha y hora.
+- Si `titulo` llega vacío se guarda como "Evento" (como en el diseño original).
+- `400` si falta la fecha o el alcance, si `hora` no tiene formato `HH:MM`, si `color` no es uno de los 6 o si `alcance` no es `admin` ni `abogado-{id}`.
+- `404` si el evento no existe.
+
+#### Contactos
+
+`POST /contactos` (mismo formato para `PUT /contactos/{id}`)
+
+```json
+{
+    "propietarioTipo": "ADMIN",
+    "propietarioId": 1,
+    "nombre": "Notaría 12",
+    "telefono": "55 2222 3333",
+    "email": "contacto@notaria12.mx",
+    "notas": "Escrituras"
+}
+```
+
+Respuesta: el mismo objeto con su `id`.
+
+- `GET /contactos` filtra por `propietarioTipo` y `propietarioId` (los dos opcionales).
+- `400` si falta el nombre o el propietario; `404` si el contacto no existe.

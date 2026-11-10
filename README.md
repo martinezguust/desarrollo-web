@@ -98,3 +98,55 @@ Cada integrante es dueña de sus módulos **completos**: HTML, JS, controlador, 
 | 6. Evaluación | 23–25 nov | Entrega y defensa | — | — |
 
 Cada fase se divide en una subfase por integrante y se trabaja en una rama por subfase (`fase1-gustavo`, `fase2-danna`, …).
+
+---
+
+## 5. Requerimientos
+
+### Requerimientos funcionales — Gustavo
+
+| ID | Requisito | Cómo se cumple |
+|---|---|---|
+| RF-01 | Inicio de sesión con tres roles: Administrador, Abogado y Cliente | `POST /sesiones` valida usuario, contraseña (BCrypt) y rol; `sesion.js` guarda la sesión en `sessionStorage` y cada página revisa el rol |
+| RF-02 | El admin registra, edita y elimina abogados (foto, cédula, credenciales) | CRUD de `/abogados`, subida de foto (`POST /abogados/{id}/foto`) y cambio de contraseña (`PUT /abogados/{id}/password`) |
+| RF-03 | Dashboard con KPIs: casos activos, ganados, perdidos, total de personal, honorarios | `GET /dashboards/admin` calcula los indicadores con datos reales de la BD |
+| RF-04 | Exportar reporte financiero en PDF con un clic | Botón "Exportar Reporte PDF" que genera y descarga el PDF con jsPDF usando los datos de `GET /finanzas` |
+| RF-05 | Archivo histórico de casos cerrados con filtro por estado y búsqueda por texto | `admin-historico.html` consume `GET /casos/historico?estado=&q=` |
+
+<!-- Requerimientos de Danna (RF-06, RF-07, RF-10) -->
+
+<!-- Requerimientos de Luisa (RF-08, RF-09, RF-11 a RF-14) -->
+
+| ID | Requisito | Responsable |
+|---|---|---|
+| RF-15 | Modal de confirmación visual tras cada operación exitosa | Todas |
+
+### Requerimientos no funcionales
+
+| ID | Categoría | Requisito | Criterio de aceptación |
+|---|---|---|---|
+| RNF-01 | Usabilidad | Admin y abogado navegables sin capacitación previa | Se conserva el diseño validado (SUS ≥ 70) |
+| RNF-02 | Accesibilidad | Vista del cliente usable en celulares de gama baja (≥ 4.5") | Compatible con Android |
+| RNF-03 | Rendimiento | Carga rápida en conexión 3G | Menos de 4 s; peso menor a 500 KB sin contar librerías |
+| RNF-04 | Compatibilidad | Funciona en Chrome, Firefox, Safari y Edge | Probado en los 4 navegadores |
+| RNF-05 | Seguridad | Contraseñas encriptadas y acceso controlado por rol | BCrypt; cada página valida el rol con `sesion.js`; nunca se devuelve `password_hash` |
+| RNF-06 | Portabilidad | Se usa desde el navegador sin instalar nada en el dispositivo | Acceso vía nginx |
+| RNF-07 | Consistencia | Misma paleta, tipografía e iconografía en todas las páginas | Un solo `estilos.css` |
+| RNF-08 | Retroalimentación | Toda operación muestra confirmación o error | Visible en menos de 500 ms |
+| RNF-09 | Mantenibilidad | Código legible y ordenado por capas | Una instrucción por línea, sangría de 4 espacios, nombres en español |
+| RNF-10 | Reproducibilidad | Se instala en otro WSL siguiendo solo el README | Probado con un clon limpio |
+
+### Restricciones
+
+| ID | Restricción |
+|---|---|
+| R-01 | Arquitectura de 3 capas: HTML/CSS/JS → Spring Boot → MySQL |
+| R-02 | Backend en Java 17 con Spring Boot y Hibernate; frontend en HTML, CSS y JS puros (sin frameworks) |
+| R-03 | Comunicación con API Fetch usando JSON y query string |
+| R-04 | Desarrollo y ejecución en WSL, con Git y VS Code |
+| R-05 | Repositorio en GitHub llamado `desarrollo-web`, con un release por fase |
+| R-06 | Equipo de 3 integrantes, cada una con su cuenta de GitHub y commits propios |
+| R-07 | El diseño visual del proyecto de UX no se modifica |
+| R-08 | El uso de IA se documenta; las pruebas unitarias las hace cada integrante |
+| R-09 | Entrega el 23 de noviembre de 2026 |
+| R-10 | Thymeleaf en al menos una vista del backend |

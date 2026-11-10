@@ -20,12 +20,12 @@ En este proyecto se convierte en un sistema funcional de 3 capas, con backend, b
 
 ### Roles
 
-| Rol | Secciones |
+| Rol | Secciones | 
 |---|---|
 | Administrador | Dashboard ejecutivo, Gestión de abogados, Finanzas (reporte PDF), Archivo histórico, Contactos, Calendario |
 | Abogado | Mi dashboard, Mis clientes, Archivos y casos (drive), Mis notas, Contactos, Calendario |
 | Cliente (vista móvil) | Mi caso (anillo de avance, semáforo, comentario con voz, documentos en Drive), Chat, Mi perfil |
-
+ 
 ### Arquitectura
 
 ```

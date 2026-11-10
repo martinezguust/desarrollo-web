@@ -113,7 +113,13 @@ Cada fase se divide en una subfase por integrante y se trabaja en una rama por s
 | RF-04 | Exportar reporte financiero en PDF con un clic | Botón "Exportar Reporte PDF" que genera y descarga el PDF con jsPDF usando los datos de `GET /finanzas` |
 | RF-05 | Archivo histórico de casos cerrados con filtro por estado y búsqueda por texto | `admin-historico.html` consume `GET /casos/historico?estado=&q=` |
 
-<!-- Requerimientos de Danna (RF-06, RF-07, RF-10) -->
+### Requerimientos funcionales — Danna
+
+| ID | Requisito | Cómo se cumple |
+|---|---|---|
+| RF-06 | El abogado registra clientes (datos, INE, descripción, avance, honorarios, enlace a Drive) | CRUD de `/clientes`; al crear un cliente también se crea su usuario con rol `CLIENTE` (contraseña con BCrypt). `abogado-clientes.html` muestra la cuadrícula y la tabla con búsqueda (`GET /clientes?abogadoId=&q=`) |
+| RF-07 | El abogado crea y actualiza casos (materia, estado, enlace de expediente) | CRUD de `/casos`; el backend genera el número de expediente (`EXP-0001`, `EXP-0002`, …). En "Archivos y casos" se filtra por materia y texto, y cada caso tiene su drive de carpetas y ligas (`/casos/{id}/carpetas`, `/carpetas/{id}/ligas`) |
+| RF-10 | Notas privadas del abogado (título, contenido) | CRUD de `/notas`; cada abogado solo ve las suyas (`GET /notas?abogadoId=`) y puede marcarlas como completadas |
 
 <!-- Requerimientos de Luisa (RF-08, RF-09, RF-11 a RF-14) -->
 

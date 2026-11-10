@@ -217,7 +217,27 @@ abogado 1 ──── *    nota
 - Al borrar un caso se borran sus carpetas, y al borrar una carpeta se borran sus ligas (`ON DELETE CASCADE`).
 - No hay tabla de documentos: los documentos del cliente se consultan con el enlace a Drive (`cliente.drive_url` o `caso.drive_url`), como en el diseño original.
 
-<!-- Tablas de Luisa -->
+### Tablas de Luisa
+
+```
+usuario 1 ──── * notificacion
+usuario 1 ──── * evento
+mensaje (agrupado por hilo)      contacto (propietario_tipo + propietario_id)
+```
+
+| Tabla | Campos | Notas |
+|---|---|---|
+| `mensaje` | id, hilo, remitente (`abogado`/`cliente`/`admin`), tipo (`texto`/`audio`/`img`/`file`), texto, archivo_url, nombre_archivo, fecha_hora, leido | `hilo` identifica la conversación: `cliente-{clienteId}` (abogado ↔ cliente) o `admin-abogado-{abogadoId}` (admin ↔ abogado) |
+| `notificacion` | id, usuario_id (FK → `usuario`), mensaje, leida, fecha_hora | Avisos de la campana del admin y del abogado |
+| `evento` | id, titulo, fecha, hora, lugar, descripcion, color, alcance, usuario_id (FK → `usuario`) | `alcance` es `admin` o `abogado-{id}`; cada agenda solo ve sus eventos |
+| `contacto` | id, propietario_tipo (`ADMIN`/`ABOGADO`), propietario_id, nombre, telefono, email, notas | Contactos agregados a mano; `propietario_id` es el id del usuario dueño |
+
+**Reglas:**
+- Los audios, imágenes y archivos del chat se guardan en `backend/uploads/mensajes/`; la tabla solo guarda su URL y el nombre original.
+- `leido` lo marca quien recibe el mensaje al abrir la conversación; con eso se dibujan los puntos rojos de "no leído".
+- `color` es uno de los 6 del selector original: `#D4AF37`, `#27AE60`, `#2980B9`, `#C0392B`, `#8E44AD`, `#E67E22`.
+- Los días festivos no se guardan: los calcula `calendario.js` (1 de enero, primer lunes de febrero, tercer lunes de marzo, 1 de mayo, 16 de septiembre, tercer lunes de noviembre, 25 de diciembre y el 1 de octubre de cada cambio de Poder Ejecutivo federal).
+- En la página de contactos del abogado, el admin y sus clientes se muestran automáticamente (salen de `usuario` y `cliente`); `contacto` solo guarda los que se agregan a mano.
 
 ---
 

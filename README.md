@@ -20,12 +20,12 @@ En este proyecto se convierte en un sistema funcional de 3 capas, con backend, b
 
 ### Roles
 
-| Rol | Secciones |
+| Rol | Secciones | 
 |---|---|
 | Administrador | Dashboard ejecutivo, Gestión de abogados, Finanzas (reporte PDF), Archivo histórico, Contactos, Calendario |
 | Abogado | Mi dashboard, Mis clientes, Archivos y casos (drive), Mis notas, Contactos, Calendario |
-| Cliente (vista móvil) | Mi caso (anillo de avance, semáforo, comentario con voz, documentos), Chat, Mi perfil |
-
+| Cliente (vista móvil) | Mi caso (anillo de avance, semáforo, comentario con voz, documentos en Drive), Chat, Mi perfil |
+ 
 ### Arquitectura
 
 ```
@@ -73,14 +73,14 @@ Cada integrante es dueña de sus módulos **completos**: HTML, JS, controlador, 
 | **JS de página** | `login.js`, `admin-dashboard.js`, `admin-abogados.js`, `admin-finanzas.js`, `admin-historico.js` | `abogado-dashboard.js`, `abogado-clientes.js`, `abogado-casos.js`, `abogado-notas.js` | `cliente-caso.js`, `cliente-chat.js`, `cliente-perfil.js`, `admin-calendario.js`, `abogado-calendario.js`, `admin-contactos.js`, `abogado-contactos.js` |
 | **JS compartido** | `api.js`, `sesion.js` | `utilidades.js`, `menu.js` | `chat.js`, `calendario.js` |
 | **Backend** | Sesion, Usuario, Abogado, Dashboard, Finanza, `PlantillaControlador` + `inicio.html` (Thymeleaf) | Cliente, Caso, Carpeta, Nota | Mensaje, Notificacion, Evento, Contacto |
-| **Modelos y repositorios** | Usuario, Abogado, Movimiento | Cliente, Caso, Carpeta, Liga, Documento, Nota | Mensaje, Notificacion, Evento, Contacto |
-| **Tablas** | `usuario`, `abogado`, `movimiento` | `cliente`, `caso`, `carpeta`, `liga`, `documento`, `nota` | `mensaje`, `notificacion`, `evento`, `contacto` |
+| **Modelos y repositorios** | Usuario, Abogado, Movimiento | Cliente, Caso, Carpeta, Liga, Nota | Mensaje, Notificacion, Evento, Contacto |
+| **Tablas** | `usuario`, `abogado`, `movimiento` | `cliente`, `caso`, `carpeta`, `liga`, `nota` | `mensaje`, `notificacion`, `evento`, `contacto` |
 | **General** | Repositorio, proyecto Spring Boot, `estilos.css`, `nginx/jurismagna.conf`, instalación de nginx en el README | Instalación de MySQL y creación de la BD en el README | Cómo correr el backend, probar con CURL y ejecutar las pruebas en el README |
 
 **Dependencias entre módulos:**
 - El histórico (Gustavo) usa `/casos/historico` de Danna.
 - El dashboard del abogado (Danna) usa `/dashboards/abogados/{id}` de Gustavo.
-- La vista del cliente (Luisa) usa `/clientes/{id}` y `/clientes/{id}/documentos` de Danna, y `/abogados/{id}` de Gustavo.
+- La vista del cliente (Luisa) usa `/clientes/{id}` y `/casos?clienteId=` de Danna, y `/abogados/{id}` de Gustavo.
 
 **Archivos compartidos (partes iguales):** `README.md`, `database/schema.sql`, `data.sql` y `curl/pruebas.sh`. Cada quien agrega su parte en una sección con su nombre.
 
@@ -113,7 +113,13 @@ Cada fase se divide en una subfase por integrante y se trabaja en una rama por s
 | RF-04 | Exportar reporte financiero en PDF con un clic | Botón "Exportar Reporte PDF" que genera y descarga el PDF con jsPDF usando los datos de `GET /finanzas` |
 | RF-05 | Archivo histórico de casos cerrados con filtro por estado y búsqueda por texto | `admin-historico.html` consume `GET /casos/historico?estado=&q=` |
 
-<!-- Requerimientos de Danna (RF-06, RF-07, RF-10) -->
+### Requerimientos funcionales — Danna
+
+| ID | Requisito | Cómo se cumple |
+|---|---|---|
+| RF-06 | El abogado registra clientes (datos, INE, descripción, avance, honorarios, enlace a Drive) | CRUD de `/clientes`; al crear un cliente también se crea su usuario con rol `CLIENTE` (contraseña con BCrypt). `abogado-clientes.html` muestra la cuadrícula y la tabla con búsqueda (`GET /clientes?abogadoId=&q=`) |
+| RF-07 | El abogado crea y actualiza casos (materia, estado, enlace de expediente) | CRUD de `/casos`; el backend genera el número de expediente (`EXP-0001`, `EXP-0002`, …). En "Archivos y casos" se filtra por materia y texto, y cada caso tiene su drive de carpetas y ligas (`/casos/{id}/carpetas`, `/carpetas/{id}/ligas`) |
+| RF-10 | Notas privadas del abogado (título, contenido) | CRUD de `/notas`; cada abogado solo ve las suyas (`GET /notas?abogadoId=`) y puede marcarlas como completadas |
 
 <!-- Requerimientos de Luisa (RF-08, RF-09, RF-11 a RF-14) -->
 
@@ -174,7 +180,29 @@ usuario 1 ──── 0..1 abogado        movimiento (independiente)
 - "Retención fiscal" se guarda como `EGRESO`. En la pantalla aparece en la tabla de ingresos con signo "−" (como en el diseño original), cuenta en el neto y **no** entra en las gráficas de barras ni en la dona de gastos.
 - Los datos de prueba reproducen las cifras del diseño original en agosto, septiembre y octubre de 2026.
 
-<!-- Tablas de Danna -->
+### Tablas de Danna
+
+```
+usuario 1 ──── 0..1 cliente
+abogado 1 ──── *    cliente
+cliente 1 ──── *    caso ──── 1 abogado
+caso    1 ──── *    carpeta 1 ──── * liga
+abogado 1 ──── *    nota
+```
+
+| Tabla | Campos | Notas |
+|---|---|---|
+| `cliente` | id, usuario_id (FK única → `usuario`), abogado_id (FK → `abogado`), nombre, edad, estudios, ine, email, telefono, descripcion, avance (0–100), honorarios (DECIMAL 12,2), drive_url, comentario (TEXT), estado (`Activo`/`Inactivo`) | `comentario` es el texto que el cliente escucha con síntesis de voz; `drive_url` es el enlace a sus documentos |
+| `caso` | id, numero_expediente (único), cliente_id (FK), abogado_id (FK), materia, estado (`Activo`, `EnProceso`, `Ganado`, `Perdido`, `Cancelado`), fecha_inicio, fecha_fin, drive_url | El backend genera `numero_expediente` (`EXP-0001`, …) |
+| `carpeta` | id, caso_id (FK), numero, materia, proyecto, estado, liga_url, fecha | Carpetas del drive del caso |
+| `liga` | id, carpeta_id (FK), nombre, url | Enlaces guardados dentro de una carpeta |
+| `nota` | id, abogado_id (FK), titulo, contenido (TEXT), completada, fecha | Notas privadas del abogado |
+
+**Reglas:**
+- `materia` acepta las 18 materias del formulario original: Civil, Penal, Mercantil, Familiar, Laboral, Administrativo, Agrario, Constitucional, Fiscal / Tributario, Ambiental, Internacional, Corporativo, Inmobiliario, Migratorio, Seguridad Social, Propiedad Intelectual, Concursal / Quiebras y Electoral. Se guarda como texto y se valida en el servicio.
+- Cuando un caso pasa a `Ganado`, `Perdido` o `Cancelado` y no tiene `fecha_fin`, el backend la llena con la fecha del día. Esos tres estados forman el archivo histórico.
+- Al borrar un caso se borran sus carpetas, y al borrar una carpeta se borran sus ligas (`ON DELETE CASCADE`).
+- No hay tabla de documentos: los documentos del cliente se consultan con el enlace a Drive (`cliente.drive_url` o `caso.drive_url`), como en el diseño original.
 
 <!-- Tablas de Luisa -->
 
@@ -414,6 +442,169 @@ Respuesta de `GET /abogados/{id}` (y de cada elemento de `GET /abogados`):
 - conteos reales de abogados, clientes, casos activos y mensajes;
 - la lista de rutas de la API con su método.
 
-<!-- Endpoints de Danna -->
+### Endpoints de Danna
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/clientes?abogadoId=&q=` | Listar clientes (filtros opcionales) |
+| GET | `/clientes/{id}` | Detalle de un cliente |
+| POST | `/clientes` | Crear cliente y su usuario |
+| PUT | `/clientes/{id}` | Editar cliente (incluye avance y comentario) |
+| DELETE | `/clientes/{id}` | Eliminar cliente y su usuario |
+| GET | `/casos?abogadoId=&clienteId=&materia=&estado=&q=` | Listar casos (filtros opcionales) |
+| GET | `/casos/historico?estado=&q=` | Casos cerrados (`Ganado`, `Perdido`, `Cancelado`) |
+| GET | `/casos/{id}` | Detalle de un caso |
+| POST | `/casos` | Crear caso (genera el número de expediente) |
+| PUT | `/casos/{id}` | Editar caso |
+| DELETE | `/casos/{id}` | Eliminar caso (y sus carpetas y ligas) |
+| GET | `/casos/{id}/carpetas` | Carpetas del caso |
+| POST | `/casos/{id}/carpetas` | Crear carpeta |
+| PUT | `/carpetas/{id}` | Editar carpeta |
+| DELETE | `/carpetas/{id}` | Eliminar carpeta (y sus ligas) |
+| GET | `/carpetas/{id}/ligas` | Ligas de la carpeta |
+| POST | `/carpetas/{id}/ligas` | Agregar liga |
+| DELETE | `/ligas/{id}` | Eliminar liga |
+| GET | `/notas?abogadoId=` | Notas del abogado |
+| POST | `/notas` | Crear nota |
+| PUT | `/notas/{id}` | Editar nota o marcarla como completada |
+| DELETE | `/notas/{id}` | Eliminar nota |
+
+#### Clientes
+
+`POST /clientes`
+
+```json
+{
+    "abogadoId": 1,
+    "nombre": "Carlos Vega",
+    "edad": 34,
+    "estudios": "Ingeniería",
+    "ine": "VECC840312",
+    "email": "carlos@mail.com",
+    "telefono": "55 1111 2222",
+    "estado": "Activo",
+    "username": "cvega",
+    "password": "cliente123",
+    "descripcion": "Disputa de propiedad inmueble",
+    "avance": 65,
+    "honorarios": 45000,
+    "driveUrl": "",
+    "comentario": "Hola Carlos, tu caso avanza bien..."
+}
+```
+
+Respuesta de `GET /clientes/{id}` (y de cada elemento de `GET /clientes`):
+
+```json
+{
+    "id": 1,
+    "usuarioId": 4,
+    "username": "cvega",
+    "abogadoId": 1,
+    "abogadoNombre": "Dr. Juan Ramírez",
+    "nombre": "Carlos Vega",
+    "edad": 34,
+    "estudios": "Ingeniería",
+    "ine": "VECC840312",
+    "email": "carlos@mail.com",
+    "telefono": "55 1111 2222",
+    "estado": "Activo",
+    "descripcion": "Disputa de propiedad inmueble",
+    "avance": 65,
+    "honorarios": 45000,
+    "driveUrl": "",
+    "comentario": "Hola Carlos, tu caso avanza bien..."
+}
+```
+
+- `q` busca en el nombre del cliente (como el buscador original).
+- `PUT /clientes/{id}` usa el mismo cuerpo. `password` es opcional: si llega vacío, la contraseña no cambia.
+- `POST` también crea la notificación "{abogado} agregó a {cliente}" para el admin (usa el servicio de notificaciones de Luisa).
+- `400` si falta el nombre, el abogado, el usuario o la contraseña (al crear), o si `avance` no está entre 0 y 100 o `honorarios` es negativo.
+- `404` si el cliente o el abogado no existen; `409` si el `username` ya existe.
+- `DELETE` → `409` si el cliente todavía tiene casos.
+
+#### Casos
+
+`POST /casos` (mismo formato para `PUT /casos/{id}`)
+
+```json
+{ "clienteId": 1, "abogadoId": 1, "materia": "Civil", "estado": "Activo", "driveUrl": "" }
+```
+
+Respuesta de `GET /casos/{id}` (y de cada elemento de las listas):
+
+```json
+{
+    "id": 1,
+    "numeroExpediente": "EXP-0001",
+    "clienteId": 1,
+    "clienteNombre": "Carlos Vega",
+    "abogadoId": 1,
+    "abogadoNombre": "Dr. Juan Ramírez",
+    "materia": "Civil",
+    "estado": "Activo",
+    "fechaInicio": "2025-03-15",
+    "fechaFin": null,
+    "driveUrl": ""
+}
+```
+
+- `POST` genera `numeroExpediente` con el siguiente número disponible (`EXP-0006` con los datos de prueba) y pone `fechaInicio` con la fecha del día.
+- Si el estado es `Ganado`, `Perdido` o `Cancelado` y no hay `fechaFin`, se llena con la fecha del día.
+- En `GET /casos`, `q` busca en el número de expediente y el nombre del cliente.
+- En `GET /casos/historico`, `estado` puede ser `Ganado`, `Perdido` o `Cancelado` (vacío = los tres), y `q` busca en expediente, cliente y abogado. Se ordena por `fechaFin` (más reciente primero).
+- `400` si falta un campo, si la materia no es una de las 18, si el estado no es válido o si el cliente no pertenece al abogado.
+- `404` si el caso, el cliente o el abogado no existen.
+
+#### Carpetas y ligas
+
+`POST /casos/{id}/carpetas` (mismo formato para `PUT /carpetas/{id}`)
+
+```json
+{ "numero": "001", "materia": "Civil", "proyecto": "Disputa Inmueble", "estado": "Activo", "ligaUrl": "https://drive.google.com" }
+```
+
+Respuesta:
+
+```json
+{ "id": 1, "casoId": 1, "numero": "001", "materia": "Civil", "proyecto": "Disputa Inmueble", "estado": "Activo", "ligaUrl": "https://drive.google.com", "fecha": "2025-03-16" }
+```
+
+`POST /carpetas/{id}/ligas`
+
+```json
+{ "nombre": "Escritura", "url": "https://drive.google.com/escritura" }
+```
+
+Respuesta: `{ "id": 1, "carpetaId": 1, "nombre": "Escritura", "url": "https://drive.google.com/escritura" }`
+
+- La carpeta toma la fecha del día al crearse.
+- La liga requiere `url`; si no trae `nombre`, se usa la URL como nombre (como en el diseño original).
+- `400` si falta la URL de la liga; `404` si el caso, la carpeta o la liga no existen.
+
+#### Notas
+
+`POST /notas`
+
+```json
+{ "abogadoId": 1, "titulo": "Preparar audiencia", "contenido": "Revisar contrato de arrendamiento" }
+```
+
+`PUT /notas/{id}`
+
+```json
+{ "titulo": "Preparar audiencia", "contenido": "Revisar contrato de arrendamiento", "completada": true }
+```
+
+Respuesta:
+
+```json
+{ "id": 1, "abogadoId": 1, "titulo": "Preparar audiencia", "contenido": "Revisar contrato de arrendamiento", "completada": true, "fecha": "2026-11-10" }
+```
+
+- `GET /notas` requiere `abogadoId`: cada abogado solo ve sus notas.
+- Al crearla, `completada` es `false` y `fecha` es la del día.
+- `400` si falta `abogadoId` o el título; `404` si la nota o el abogado no existen.
 
 <!-- Endpoints de Luisa -->

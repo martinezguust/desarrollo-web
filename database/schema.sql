@@ -83,8 +83,99 @@ CREATE TABLE IF NOT EXISTS movimiento (
 
 
 -- =====================================================================
--- Tablas de Danna: cliente, caso, carpeta, liga, documento, nota
+-- Tablas de Danna: cliente, caso, carpeta, liga, nota
+-- (los documentos del cliente se manejan con su enlace a Drive)
 -- =====================================================================
+
+-- Clientes del despacho; cada cliente tiene un usuario y un abogado.
+-- comentario es el texto que el cliente escucha con síntesis de voz.
+CREATE TABLE IF NOT EXISTS cliente (
+    id          INT            NOT NULL AUTO_INCREMENT,
+    usuario_id  INT            NOT NULL,
+    abogado_id  INT            NOT NULL,
+    nombre      VARCHAR(100)   NOT NULL,
+    edad        INT            NULL,
+    estudios    VARCHAR(150)   NULL,
+    ine         VARCHAR(20)    NULL,
+    email       VARCHAR(100)   NULL,
+    telefono    VARCHAR(20)    NULL,
+    descripcion VARCHAR(500)   NULL,
+    avance      INT            NOT NULL DEFAULT 0,
+    honorarios  DECIMAL(12, 2) NOT NULL DEFAULT 0,
+    drive_url   VARCHAR(255)   NULL,
+    comentario  TEXT           NULL,
+    estado      ENUM('Activo', 'Inactivo') NOT NULL DEFAULT 'Activo',
+
+    PRIMARY KEY (id),
+    CONSTRAINT uq_cliente_usuario UNIQUE (usuario_id),
+    CONSTRAINT fk_cliente_usuario FOREIGN KEY (usuario_id) REFERENCES usuario (id),
+    CONSTRAINT fk_cliente_abogado FOREIGN KEY (abogado_id) REFERENCES abogado (id),
+    CONSTRAINT ck_cliente_avance CHECK (avance BETWEEN 0 AND 100),
+    CONSTRAINT ck_cliente_honorarios CHECK (honorarios >= 0)
+);
+
+-- Casos (expedientes). El backend genera numero_expediente: EXP-0001, ...
+-- materia admite las 18 del formulario original y se valida en el servicio:
+--   Civil, Penal, Mercantil, Familiar, Laboral, Administrativo, Agrario,
+--   Constitucional, Fiscal / Tributario, Ambiental, Internacional,
+--   Corporativo, Inmobiliario, Migratorio, Seguridad Social,
+--   Propiedad Intelectual, Concursal / Quiebras, Electoral
+-- fecha_fin se llena cuando el caso pasa a Ganado, Perdido o Cancelado.
+CREATE TABLE IF NOT EXISTS caso (
+    id                INT          NOT NULL AUTO_INCREMENT,
+    numero_expediente VARCHAR(10)  NOT NULL,
+    cliente_id        INT          NOT NULL,
+    abogado_id        INT          NOT NULL,
+    materia           VARCHAR(40)  NOT NULL,
+    estado            ENUM('Activo', 'EnProceso', 'Ganado', 'Perdido', 'Cancelado') NOT NULL DEFAULT 'Activo',
+    fecha_inicio      DATE         NOT NULL,
+    fecha_fin         DATE         NULL,
+    drive_url         VARCHAR(255) NULL,
+
+    PRIMARY KEY (id),
+    CONSTRAINT uq_caso_expediente UNIQUE (numero_expediente),
+    CONSTRAINT fk_caso_cliente FOREIGN KEY (cliente_id) REFERENCES cliente (id),
+    CONSTRAINT fk_caso_abogado FOREIGN KEY (abogado_id) REFERENCES abogado (id)
+);
+
+-- Carpetas del drive de cada caso. Si se borra el caso, se borran sus carpetas.
+CREATE TABLE IF NOT EXISTS carpeta (
+    id       INT          NOT NULL AUTO_INCREMENT,
+    caso_id  INT          NOT NULL,
+    numero   VARCHAR(20)  NULL,
+    materia  VARCHAR(50)  NULL,
+    proyecto VARCHAR(150) NULL,
+    estado   VARCHAR(30)  NULL,
+    liga_url VARCHAR(255) NULL,
+    fecha    DATE         NOT NULL,
+
+    PRIMARY KEY (id),
+    CONSTRAINT fk_carpeta_caso FOREIGN KEY (caso_id) REFERENCES caso (id) ON DELETE CASCADE
+);
+
+-- Ligas (enlaces) dentro de una carpeta. Si se borra la carpeta, se borran sus ligas.
+CREATE TABLE IF NOT EXISTS liga (
+    id         INT          NOT NULL AUTO_INCREMENT,
+    carpeta_id INT          NOT NULL,
+    nombre     VARCHAR(150) NOT NULL,
+    url        VARCHAR(255) NOT NULL,
+
+    PRIMARY KEY (id),
+    CONSTRAINT fk_liga_carpeta FOREIGN KEY (carpeta_id) REFERENCES carpeta (id) ON DELETE CASCADE
+);
+
+-- Notas privadas del abogado.
+CREATE TABLE IF NOT EXISTS nota (
+    id         INT          NOT NULL AUTO_INCREMENT,
+    abogado_id INT          NOT NULL,
+    titulo     VARCHAR(150) NOT NULL,
+    contenido  TEXT         NULL,
+    completada BOOLEAN      NOT NULL DEFAULT FALSE,
+    fecha      DATE         NOT NULL,
+
+    PRIMARY KEY (id),
+    CONSTRAINT fk_nota_abogado FOREIGN KEY (abogado_id) REFERENCES abogado (id)
+);
 
 
 -- =====================================================================

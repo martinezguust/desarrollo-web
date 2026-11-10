@@ -120,6 +120,7 @@ Cada fase se divide en una subfase por integrante y se trabaja en una rama por s
 | RF-06 | El abogado registra clientes (datos, INE, descripción, avance, honorarios, enlace a Drive) | CRUD de `/clientes`; al crear un cliente también se crea su usuario con rol `CLIENTE` (contraseña con BCrypt). `abogado-clientes.html` muestra la cuadrícula y la tabla con búsqueda (`GET /clientes?abogadoId=&q=`) |
 | RF-07 | El abogado crea y actualiza casos (materia, estado, enlace de expediente) | CRUD de `/casos`; el backend genera el número de expediente (`EXP-0001`, `EXP-0002`, …). En "Archivos y casos" se filtra por materia y texto, y cada caso tiene su drive de carpetas y ligas (`/casos/{id}/carpetas`, `/carpetas/{id}/ligas`) |
 | RF-10 | Notas privadas del abogado (título, contenido) | CRUD de `/notas`; cada abogado solo ve las suyas (`GET /notas?abogadoId=`) y puede marcarlas como completadas |
+**Reglas confirmadas por Danna: No se elimina un cliente con casos(409)
 
 ### Requerimientos funcionales — Luisa
 

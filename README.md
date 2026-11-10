@@ -135,6 +135,7 @@ Cada fase se divide en una subfase por integrante y se trabaja en una rama por s
 **Notas de la vista del cliente y contactos:**
 - En pantallas grandes la vista del cliente conserva el marco de iPhone; en celulares reales (menos de 500 px de ancho) el marco se quita con una media query.
 - Los contactos manuales del admin no tienen chat: solo muestran sus datos y el botón de eliminar.
+**reglas confirmadas -luisa
 
 | ID | Requisito | Responsable |
 |---|---|---|

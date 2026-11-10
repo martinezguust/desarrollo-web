@@ -1,0 +1,18 @@
+# Código original de referencia (solo para consulta local)
+referencia/
+
+# Guías internas de trabajo con IA (no se suben)
+CLAUDE.md
+INSTRUCCIONES-CLAUDE-CODE.md
+
+# Backend: compilados y archivos subidos
+backend/target/
+backend/uploads/
+
+# Variables de entorno y logs
+.env
+*.log
+
+# Editores
+.vscode/
+.idea/

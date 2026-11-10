@@ -1,0 +1,7 @@
+# Saltos de línea LF en todos los archivos de texto
+* text=auto eol=lf
+
+# Binarios
+*.jpg binary
+*.png binary
+*.jar binary

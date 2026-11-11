@@ -757,3 +757,4 @@ Respuesta: el mismo objeto con su `id`.
 
 - `GET /contactos` filtra por `propietarioTipo` y `propietarioId` (los dos opcionales).
 - `400` si falta el nombre o el propietario; `404` si el contacto no existe.
+  - **Reportes de uso de IA:** [Desarrollo web - Reportes de IA](https://uvmx-my.sharepoint.com/:f:/g/personal/zs24013356_estudiantes_uv_mx/IgBp-tp1Fd-YQKcLTQNt-O6jASLZ1KrWnp93V6cwzX8oO5w?e=kfOk4K)

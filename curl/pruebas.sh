@@ -265,3 +265,119 @@ echo ""
 # =====================================================================
 # Pruebas de Luisa: mensajes, notificaciones, eventos, contactos
 # =====================================================================
+
+titulo "GET /mensajes?hilo=cliente-1  conversación de Carlos Vega (200)"
+curl -s "$URL/mensajes?hilo=cliente-1"
+echo ""
+
+titulo "GET /mensajes  sin hilo (400)"
+curl -s -w "\nHTTP %{http_code}" "$URL/mensajes"
+echo ""
+
+titulo "POST /mensajes  el cliente escribe; avisa a su abogado (200)"
+curl -s -X POST "$URL/mensajes" \
+    -H "Content-Type: application/json" \
+    -d '{"hilo": "cliente-1", "remitente": "cliente", "texto": "Ya firmé los documentos."}'
+echo ""
+
+titulo "POST /mensajes  el admin escribe a un abogado (200)"
+curl -s -X POST "$URL/mensajes" \
+    -H "Content-Type: application/json" \
+    -d '{"hilo": "admin-abogado-1", "remitente": "admin", "texto": "Juan, revisa el expediente EXP-0001 por favor."}'
+echo ""
+
+titulo "POST /mensajes  remitente que no pertenece al hilo (400)"
+curl -s -w "\nHTTP %{http_code}" -X POST "$URL/mensajes" \
+    -H "Content-Type: application/json" \
+    -d '{"hilo": "cliente-1", "remitente": "admin", "texto": "Hola"}'
+echo ""
+
+titulo "POST /mensajes  cliente que no existe (404)"
+curl -s -w "\nHTTP %{http_code}" -X POST "$URL/mensajes" \
+    -H "Content-Type: application/json" \
+    -d '{"hilo": "cliente-999", "remitente": "cliente", "texto": "Hola"}'
+echo ""
+
+titulo "GET /notificaciones?usuarioId=2  avisos del Dr. Juan Ramírez (200)"
+curl -s "$URL/notificaciones?usuarioId=2"
+echo ""
+
+titulo "POST /notificaciones  crear notificación (200)"
+curl -s -X POST "$URL/notificaciones" \
+    -H "Content-Type: application/json" \
+    -d '{"usuarioId": 1, "mensaje": "Prueba de notificación"}'
+echo ""
+
+titulo "POST /notificaciones  usuario que no existe (404)"
+curl -s -w "\nHTTP %{http_code}" -X POST "$URL/notificaciones" \
+    -H "Content-Type: application/json" \
+    -d '{"usuarioId": 999, "mensaje": "No llega"}'
+echo ""
+
+titulo "GET /notificaciones?usuarioId=1  avisos del admin (200)"
+curl -s "$URL/notificaciones?usuarioId=1"
+echo ""
+
+titulo "POST /eventos  crear evento (200)"
+curl -s -X POST "$URL/eventos" \
+    -H "Content-Type: application/json" \
+    -d '{
+        "titulo": "Audiencia Carlos Vega",
+        "fecha": "2026-11-28",
+        "hora": "10:00",
+        "lugar": "Juzgado 5",
+        "descripcion": "Llevar contrato y acta notarial",
+        "color": "#D4AF37",
+        "alcance": "abogado-1",
+        "usuarioId": 2
+    }'
+echo ""
+
+titulo "POST /eventos  sin título; se guarda como Evento (200)"
+curl -s -X POST "$URL/eventos" \
+    -H "Content-Type: application/json" \
+    -d '{"fecha": "2026-11-20", "alcance": "admin", "usuarioId": 1}'
+echo ""
+
+titulo "POST /eventos  color no válido (400)"
+curl -s -w "\nHTTP %{http_code}" -X POST "$URL/eventos" \
+    -H "Content-Type: application/json" \
+    -d '{"titulo": "Junta", "fecha": "2026-11-21", "color": "#000000", "alcance": "admin", "usuarioId": 1}'
+echo ""
+
+titulo "POST /eventos  alcance no válido (400)"
+curl -s -w "\nHTTP %{http_code}" -X POST "$URL/eventos" \
+    -H "Content-Type: application/json" \
+    -d '{"titulo": "Junta", "fecha": "2026-11-21", "alcance": "todos", "usuarioId": 1}'
+echo ""
+
+titulo "GET /eventos?alcance=abogado-1  agenda del Dr. Juan Ramírez (200)"
+curl -s "$URL/eventos?alcance=abogado-1"
+echo ""
+
+titulo "GET /eventos  sin alcance (400)"
+curl -s -w "\nHTTP %{http_code}" "$URL/eventos"
+echo ""
+
+titulo "POST /contactos  crear contacto del admin (200)"
+curl -s -X POST "$URL/contactos" \
+    -H "Content-Type: application/json" \
+    -d '{
+        "propietarioTipo": "ADMIN",
+        "propietarioId": 1,
+        "nombre": "Notaría 12",
+        "telefono": "55 2222 3333",
+        "email": "contacto@notaria12.mx",
+        "notas": "Escrituras"
+    }'
+echo ""
+
+titulo "POST /contactos  sin nombre (400)"
+curl -s -w "\nHTTP %{http_code}" -X POST "$URL/contactos" \
+    -H "Content-Type: application/json" \
+    -d '{"propietarioTipo": "ADMIN", "propietarioId": 1}'
+echo ""
+
+titulo "GET /contactos  listar contactos (200)"
+curl -s "$URL/contactos"
+echo ""

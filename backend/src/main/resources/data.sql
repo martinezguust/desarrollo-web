@@ -72,3 +72,23 @@ INSERT IGNORE INTO caso (id, numero_expediente, cliente_id, abogado_id, materia,
 
 INSERT IGNORE INTO carpeta (id, caso_id, numero, materia, proyecto, estado, liga_url, fecha) VALUES
     (1, 1, '001', 'Civil', 'Disputa Inmueble', 'Activo', 'https://drive.google.com', '2025-03-16');
+
+
+-- =====================================================================
+-- Datos de Luisa: mensaje, notificacion
+-- (en el diseño original los eventos y los contactos empiezan vacíos)
+-- =====================================================================
+
+-- Conversaciones de ejemplo de Carlos Vega (cliente-1) y María Torres (cliente-2)
+INSERT IGNORE INTO mensaje (id, hilo, remitente, tipo, texto, archivo_url, nombre_archivo, fecha_hora, leido) VALUES
+    (1, 'cliente-1', 'cliente', 'texto', 'Buenos días, ¿hay novedades de mi caso?',                              NULL, NULL, '2026-11-10 09:00:00', TRUE),
+    (2, 'cliente-1', 'abogado', 'texto', 'Hola Carlos, la audiencia está fijada para el 28 de mayo a las 10am.', NULL, NULL, '2026-11-10 09:05:00', TRUE),
+    (3, 'cliente-1', 'cliente', 'texto', 'Entendido, ahí estaré. ¿Qué documentos necesito?',                     NULL, NULL, '2026-11-10 09:08:00', TRUE),
+    (4, 'cliente-1', 'abogado', 'texto', 'El contrato de arrendamiento y el acta notarial.',                     NULL, NULL, '2026-11-10 09:10:00', TRUE),
+    (5, 'cliente-2', 'cliente', 'texto', '¿Cuándo será la próxima cita?',                                        NULL, NULL, '2026-11-10 10:00:00', TRUE),
+    (6, 'cliente-2', 'abogado', 'texto', 'María, te agendaré la semana próxima.',                                NULL, NULL, '2026-11-10 10:15:00', TRUE);
+
+-- Notificaciones de la campana del admin (usuario 1)
+INSERT IGNORE INTO notificacion (id, usuario_id, mensaje, leida, fecha_hora) VALUES
+    (1, 1, 'Dr. Juan Ramírez agregó a Carlos Vega',  FALSE, '2026-11-10 09:00:00'),
+    (2, 1, 'Dr. Juan Ramírez agregó a María Torres', FALSE, '2026-11-10 09:05:00');

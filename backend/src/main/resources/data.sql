@@ -50,3 +50,25 @@ INSERT IGNORE INTO movimiento (id, tipo, concepto, monto, fecha) VALUES
     (16, 'EGRESO',  'Servicios',              18000.00, '2026-10-25'),
     -- Retención fiscal del trimestre (se muestra con "−" en la tabla de ingresos)
     (17, 'EGRESO',  'Retención fiscal',      240000.00, '2026-10-31');
+
+
+-- =====================================================================
+-- Datos de Danna: cliente, caso, carpeta, nota
+-- (los usuarios de los clientes son los id 4, 5 y 6 de la tabla usuario)
+-- =====================================================================
+
+INSERT IGNORE INTO cliente (id, usuario_id, abogado_id, nombre, edad, estudios, ine, email, telefono, descripcion, avance, honorarios, drive_url, comentario, estado) VALUES
+    (1, 4, 1, 'Carlos Vega',   34, 'Ingeniería',     'VECC840312', 'carlos@mail.com',  '55 1111 2222', 'Disputa de propiedad inmueble', 65, 45000.00, '',
+        'Hola Carlos, tu caso avanza bien. La audiencia quedó fijada para el 28 de mayo a las 10am en el Juzgado 5. Necesito que revises y firmes los documentos a la brevedad.', 'Activo'),
+    (2, 5, 1, 'María Torres',  42, 'Contaduría',     'TOMM810415', 'maria@mail.com',   '55 3333 4444', 'Divorcio y custodia',           30, 28000.00, '', '', 'Activo'),
+    (3, 6, 2, 'Roberto Silva', 51, 'Administración', 'SIRR720820', 'roberto@mail.com', '55 5555 6666', 'Fraude empresarial',            80, 95000.00, '', '', 'Activo');
+
+INSERT IGNORE INTO caso (id, numero_expediente, cliente_id, abogado_id, materia, estado, fecha_inicio, fecha_fin, drive_url) VALUES
+    (1, 'EXP-0001', 1, 1, 'Civil',     'Activo',    '2025-03-15', NULL,         ''),
+    (2, 'EXP-0002', 2, 1, 'Familiar',  'EnProceso', '2025-04-15', NULL,         ''),
+    (3, 'EXP-0003', 1, 1, 'Mercantil', 'Ganado',    '2025-01-15', '2025-05-10', 'https://drive.google.com/caso3'),
+    (4, 'EXP-0004', 3, 2, 'Penal',     'Activo',    '2025-05-01', NULL,         ''),
+    (5, 'EXP-0005', 3, 2, 'Penal',     'Perdido',   '2024-11-15', '2025-04-20', 'https://drive.google.com/caso5');
+
+INSERT IGNORE INTO carpeta (id, caso_id, numero, materia, proyecto, estado, liga_url, fecha) VALUES
+    (1, 1, '001', 'Civil', 'Disputa Inmueble', 'Activo', 'https://drive.google.com', '2025-03-16');

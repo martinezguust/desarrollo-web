@@ -19,6 +19,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 // Evento del calendario. alcance separa las agendas:
 //   admin          agenda del administrador
@@ -34,6 +36,7 @@ public class Evento {
     @Column(nullable = false, length = 150)
     private String titulo;
 
+    @NotNull(message = "Falta la fecha")
     @Column(nullable = false)
     private LocalDate fecha;
 
@@ -50,6 +53,7 @@ public class Evento {
     @Column(nullable = false, length = 7)
     private String color = "#D4AF37";
 
+    @NotBlank(message = "Falta el alcance")
     @Column(nullable = false, length = 20)
     private String alcance;
 

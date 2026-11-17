@@ -20,12 +20,6 @@ FALLAS=0
 TEMPORAL=$(mktemp -d)
 trap 'rm -rf "$TEMPORAL"' EXIT
 
-# Imprime un título antes de cada prueba (pruebas que no revisan el código)
-function titulo() {
-    echo ""
-    echo "=== $1 ==="
-}
-
 # Hace una prueba y revisa el código HTTP:
 #     probar "descripción" código_esperado argumentos_de_curl...
 # Deja la respuesta en CUERPO para poder sacar el id de lo creado.
@@ -470,64 +464,106 @@ probar "DELETE /notas/$NOTA_ID  ya no existe" 404 -X DELETE "$URL/notas/$NOTA_ID
 
 
 # =====================================================================
-# Pruebas de Luisa: mensajes, notificaciones, eventos, contactos
+# Pruebas de Luisa: mensajes (texto y archivos), notificaciones,
+# eventos y contactos
 # =====================================================================
 
-titulo "GET /mensajes?hilo=cliente-1  conversación de Carlos Vega (200)"
-curl -s "$URL/mensajes?hilo=cliente-1"
-echo ""
+# Archivos de prueba para el chat: una nota de voz falsa (webm) y un documento
+echo "audio de prueba" > "$TEMPORAL/audio.webm"
+echo "documento de prueba" > "$TEMPORAL/documento.pdf"
 
-titulo "GET /mensajes  sin hilo (400)"
-curl -s -w "\nHTTP %{http_code}" "$URL/mensajes"
-echo ""
+# ---------- Mensajes de texto ----------
 
-titulo "POST /mensajes  el cliente escribe; avisa a su abogado (200)"
-curl -s -X POST "$URL/mensajes" \
-    -H "Content-Type: application/json" \
+probar "GET /mensajes?hilo=cliente-1  conversación de Carlos Vega" 200 "$URL/mensajes?hilo=cliente-1"
+
+probar "GET /mensajes  sin hilo" 400 "$URL/mensajes"
+
+probar "POST /mensajes  el cliente escribe (avisa a su abogado)" 200 -X POST "$URL/mensajes" -H "$JSON" \
     -d '{"hilo": "cliente-1", "remitente": "cliente", "texto": "Ya firmé los documentos."}'
-echo ""
 
-titulo "POST /mensajes  el admin escribe a un abogado (200)"
-curl -s -X POST "$URL/mensajes" \
-    -H "Content-Type: application/json" \
+probar "POST /mensajes  el admin escribe a un abogado" 200 -X POST "$URL/mensajes" -H "$JSON" \
     -d '{"hilo": "admin-abogado-1", "remitente": "admin", "texto": "Juan, revisa el expediente EXP-0001 por favor."}'
-echo ""
 
-titulo "POST /mensajes  remitente que no pertenece al hilo (400)"
-curl -s -w "\nHTTP %{http_code}" -X POST "$URL/mensajes" \
-    -H "Content-Type: application/json" \
+probar "POST /mensajes  remitente que no pertenece al hilo" 400 -X POST "$URL/mensajes" -H "$JSON" \
     -d '{"hilo": "cliente-1", "remitente": "admin", "texto": "Hola"}'
-echo ""
 
-titulo "POST /mensajes  cliente que no existe (404)"
-curl -s -w "\nHTTP %{http_code}" -X POST "$URL/mensajes" \
-    -H "Content-Type: application/json" \
+probar "POST /mensajes  hilo con formato incorrecto" 400 -X POST "$URL/mensajes" -H "$JSON" \
+    -d '{"hilo": "grupo-1", "remitente": "cliente", "texto": "Hola"}'
+
+probar "POST /mensajes  sin texto" 400 -X POST "$URL/mensajes" -H "$JSON" \
+    -d '{"hilo": "cliente-1", "remitente": "cliente"}'
+
+probar "POST /mensajes  cliente que no existe" 404 -X POST "$URL/mensajes" -H "$JSON" \
     -d '{"hilo": "cliente-999", "remitente": "cliente", "texto": "Hola"}'
-echo ""
 
-titulo "GET /notificaciones?usuarioId=2  avisos del Dr. Juan Ramírez (200)"
-curl -s "$URL/notificaciones?usuarioId=2"
-echo ""
+# ---------- Mensajes con archivos (multipart) ----------
 
-titulo "POST /notificaciones  crear notificación (200)"
-curl -s -X POST "$URL/notificaciones" \
-    -H "Content-Type: application/json" \
+probar "POST /mensajes/archivos  nota de voz (audio webm)" 200 -X POST "$URL/mensajes/archivos" \
+    -F "hilo=cliente-1" -F "remitente=cliente" -F "tipo=audio" -F "archivo=@$TEMPORAL/audio.webm"
+AUDIO_ID=$(id_creado)
+AUDIO_URL=$(echo "$CUERPO" | grep -o '/uploads/[^"]*')
+
+probar "GET $AUDIO_URL  el audio se puede descargar" 200 -o /dev/null "$URL$AUDIO_URL"
+
+probar "POST /mensajes/archivos  imagen del abogado" 200 -X POST "$URL/mensajes/archivos" \
+    -F "hilo=cliente-1" -F "remitente=abogado" -F "tipo=img" -F "archivo=@$TEMPORAL/foto.png"
+
+probar "POST /mensajes/archivos  documento PDF" 200 -X POST "$URL/mensajes/archivos" \
+    -F "hilo=admin-abogado-1" -F "remitente=admin" -F "tipo=file" -F "archivo=@$TEMPORAL/documento.pdf"
+
+probar "POST /mensajes/archivos  un .txt enviado como imagen" 400 -X POST "$URL/mensajes/archivos" \
+    -F "hilo=cliente-1" -F "remitente=cliente" -F "tipo=img" -F "archivo=@$TEMPORAL/nota.txt"
+
+probar "POST /mensajes/archivos  tipo no válido" 400 -X POST "$URL/mensajes/archivos" \
+    -F "hilo=cliente-1" -F "remitente=cliente" -F "tipo=video" -F "archivo=@$TEMPORAL/audio.webm"
+
+probar "POST /mensajes/archivos  sin archivo" 400 -X POST "$URL/mensajes/archivos" \
+    -F "hilo=cliente-1" -F "remitente=cliente" -F "tipo=audio"
+
+probar "POST /mensajes/archivos  remitente que no pertenece al hilo" 400 -X POST "$URL/mensajes/archivos" \
+    -F "hilo=admin-abogado-1" -F "remitente=cliente" -F "tipo=audio" -F "archivo=@$TEMPORAL/audio.webm"
+
+# ---------- Leídos y eliminar mensajes ----------
+
+probar "PUT /mensajes/leidos?hilo=cliente-1&lector=abogado  el abogado abre el chat" 200 -X PUT "$URL/mensajes/leidos?hilo=cliente-1&lector=abogado"
+
+probar "PUT /mensajes/leidos?hilo=cliente-1&lector=juez  lector no válido" 400 -X PUT "$URL/mensajes/leidos?hilo=cliente-1&lector=juez"
+
+probar "PUT /mensajes/leidos  sin hilo" 400 -X PUT "$URL/mensajes/leidos?lector=abogado"
+
+probar "DELETE /mensajes/$AUDIO_ID  eliminar la nota de voz (y su archivo)" 200 -X DELETE "$URL/mensajes/$AUDIO_ID"
+
+probar "GET $AUDIO_URL  el archivo ya se borró" 404 "$URL$AUDIO_URL"
+
+probar "DELETE /mensajes/$AUDIO_ID  ya no existe" 404 -X DELETE "$URL/mensajes/$AUDIO_ID"
+
+# ---------- Notificaciones ----------
+
+probar "GET /notificaciones?usuarioId=2  avisos del Dr. Juan Ramírez" 200 "$URL/notificaciones?usuarioId=2"
+
+probar "GET /notificaciones  sin usuarioId" 400 "$URL/notificaciones"
+
+probar "POST /notificaciones  crear notificación" 200 -X POST "$URL/notificaciones" -H "$JSON" \
     -d '{"usuarioId": 1, "mensaje": "Prueba de notificación"}'
-echo ""
+NOTIFICACION_ID=$(id_creado)
 
-titulo "POST /notificaciones  usuario que no existe (404)"
-curl -s -w "\nHTTP %{http_code}" -X POST "$URL/notificaciones" \
-    -H "Content-Type: application/json" \
+probar "POST /notificaciones  sin mensaje (@Valid)" 400 -X POST "$URL/notificaciones" -H "$JSON" \
+    -d '{"usuarioId": 1, "mensaje": ""}'
+
+probar "POST /notificaciones  usuario que no existe" 404 -X POST "$URL/notificaciones" -H "$JSON" \
     -d '{"usuarioId": 999, "mensaje": "No llega"}'
-echo ""
 
-titulo "GET /notificaciones?usuarioId=1  avisos del admin (200)"
-curl -s "$URL/notificaciones?usuarioId=1"
-echo ""
+probar "PUT /notificaciones/leidas?usuarioId=2  marcar todas como leídas" 200 -X PUT "$URL/notificaciones/leidas?usuarioId=2"
 
-titulo "POST /eventos  crear evento (200)"
-curl -s -X POST "$URL/eventos" \
-    -H "Content-Type: application/json" \
+probar "PUT /notificaciones/leidas?usuarioId=999  usuario que no existe" 404 -X PUT "$URL/notificaciones/leidas?usuarioId=999"
+
+probar "DELETE /notificaciones/$NOTIFICACION_ID  eliminar notificación" 200 -X DELETE "$URL/notificaciones/$NOTIFICACION_ID"
+
+probar "DELETE /notificaciones/$NOTIFICACION_ID  ya no existe" 404 -X DELETE "$URL/notificaciones/$NOTIFICACION_ID"
+
+# ---------- Eventos ----------
+
+probar "POST /eventos  crear evento" 200 -X POST "$URL/eventos" -H "$JSON" \
     -d '{
         "titulo": "Audiencia Carlos Vega",
         "fecha": "2026-11-28",
@@ -538,37 +574,60 @@ curl -s -X POST "$URL/eventos" \
         "alcance": "abogado-1",
         "usuarioId": 2
     }'
-echo ""
+EVENTO_ID=$(id_creado)
 
-titulo "POST /eventos  sin título; se guarda como Evento (200)"
-curl -s -X POST "$URL/eventos" \
-    -H "Content-Type: application/json" \
-    -d '{"fecha": "2026-11-20", "alcance": "admin", "usuarioId": 1}'
-echo ""
+probar "POST /eventos  sin título (se guarda como Evento)" 200 -X POST "$URL/eventos" -H "$JSON" \
+    -d '{"fecha": "2026-12-03", "alcance": "abogado-1", "usuarioId": 2}'
 
-titulo "POST /eventos  color no válido (400)"
-curl -s -w "\nHTTP %{http_code}" -X POST "$URL/eventos" \
-    -H "Content-Type: application/json" \
+probar "POST /eventos  color no válido" 400 -X POST "$URL/eventos" -H "$JSON" \
     -d '{"titulo": "Junta", "fecha": "2026-11-21", "color": "#000000", "alcance": "admin", "usuarioId": 1}'
-echo ""
 
-titulo "POST /eventos  alcance no válido (400)"
-curl -s -w "\nHTTP %{http_code}" -X POST "$URL/eventos" \
-    -H "Content-Type: application/json" \
+probar "POST /eventos  alcance no válido" 400 -X POST "$URL/eventos" -H "$JSON" \
     -d '{"titulo": "Junta", "fecha": "2026-11-21", "alcance": "todos", "usuarioId": 1}'
-echo ""
 
-titulo "GET /eventos?alcance=abogado-1  agenda del Dr. Juan Ramírez (200)"
-curl -s "$URL/eventos?alcance=abogado-1"
-echo ""
+probar "POST /eventos  hora con formato incorrecto" 400 -X POST "$URL/eventos" -H "$JSON" \
+    -d '{"titulo": "Junta", "fecha": "2026-11-21", "hora": "25:99", "alcance": "admin", "usuarioId": 1}'
 
-titulo "GET /eventos  sin alcance (400)"
-curl -s -w "\nHTTP %{http_code}" "$URL/eventos"
-echo ""
+probar "POST /eventos  sin fecha (@Valid)" 400 -X POST "$URL/eventos" -H "$JSON" \
+    -d '{"titulo": "Junta", "alcance": "admin", "usuarioId": 1}'
 
-titulo "POST /contactos  crear contacto del admin (200)"
-curl -s -X POST "$URL/contactos" \
-    -H "Content-Type: application/json" \
+probar "POST /eventos  usuario que no existe" 404 -X POST "$URL/eventos" -H "$JSON" \
+    -d '{"titulo": "Junta", "fecha": "2026-11-21", "alcance": "admin", "usuarioId": 999}'
+
+probar "GET /eventos?alcance=abogado-1  agenda completa del Dr. Juan Ramírez" 200 "$URL/eventos?alcance=abogado-1"
+
+probar "GET /eventos?alcance=abogado-1&anio=2026&mes=11  solo noviembre" 200 "$URL/eventos?alcance=abogado-1&anio=2026&mes=11"
+
+probar "GET /eventos?alcance=admin&anio=2026  falta el mes" 400 "$URL/eventos?alcance=admin&anio=2026"
+
+probar "GET /eventos?alcance=admin&anio=2026&mes=13  mes no válido" 400 "$URL/eventos?alcance=admin&anio=2026&mes=13"
+
+probar "GET /eventos  sin alcance" 400 "$URL/eventos"
+
+probar "PUT /eventos/$EVENTO_ID  cambiar hora y color" 200 -X PUT "$URL/eventos/$EVENTO_ID" -H "$JSON" \
+    -d '{
+        "titulo": "Audiencia Carlos Vega",
+        "fecha": "2026-11-28",
+        "hora": "12:30",
+        "lugar": "Juzgado 5",
+        "descripcion": "Se movió la hora",
+        "color": "#C0392B",
+        "alcance": "abogado-1"
+    }'
+
+probar "PUT /eventos/$EVENTO_ID  color no válido" 400 -X PUT "$URL/eventos/$EVENTO_ID" -H "$JSON" \
+    -d '{"fecha": "2026-11-28", "color": "rojo", "alcance": "abogado-1"}'
+
+probar "PUT /eventos/999  evento que no existe" 404 -X PUT "$URL/eventos/999" -H "$JSON" \
+    -d '{"fecha": "2026-11-28", "alcance": "admin"}'
+
+probar "DELETE /eventos/$EVENTO_ID  eliminar evento" 200 -X DELETE "$URL/eventos/$EVENTO_ID"
+
+probar "DELETE /eventos/$EVENTO_ID  ya no existe" 404 -X DELETE "$URL/eventos/$EVENTO_ID"
+
+# ---------- Contactos ----------
+
+probar "POST /contactos  contacto del admin" 200 -X POST "$URL/contactos" -H "$JSON" \
     -d '{
         "propietarioTipo": "ADMIN",
         "propietarioId": 1,
@@ -577,17 +636,45 @@ curl -s -X POST "$URL/contactos" \
         "email": "contacto@notaria12.mx",
         "notas": "Escrituras"
     }'
-echo ""
+CONTACTO_ID=$(id_creado)
 
-titulo "POST /contactos  sin nombre (400)"
-curl -s -w "\nHTTP %{http_code}" -X POST "$URL/contactos" \
-    -H "Content-Type: application/json" \
+probar "POST /contactos  contacto de un abogado (usuario 2)" 200 -X POST "$URL/contactos" -H "$JSON" \
+    -d '{"propietarioTipo": "ABOGADO", "propietarioId": 2, "nombre": "Perito Gómez", "telefono": "55 4444 5555"}'
+
+probar "POST /contactos  el usuario 1 no es ABOGADO" 400 -X POST "$URL/contactos" -H "$JSON" \
+    -d '{"propietarioTipo": "ABOGADO", "propietarioId": 1, "nombre": "Mal propietario"}'
+
+probar "POST /contactos  propietario que no existe" 404 -X POST "$URL/contactos" -H "$JSON" \
+    -d '{"propietarioTipo": "ADMIN", "propietarioId": 999, "nombre": "Sin dueño"}'
+
+probar "POST /contactos  propietarioTipo no válido" 400 -X POST "$URL/contactos" -H "$JSON" \
+    -d '{"propietarioTipo": "CLIENTE", "propietarioId": 4, "nombre": "No permitido"}'
+
+probar "POST /contactos  sin nombre (@Valid)" 400 -X POST "$URL/contactos" -H "$JSON" \
     -d '{"propietarioTipo": "ADMIN", "propietarioId": 1}'
-echo ""
 
-titulo "GET /contactos  listar contactos (200)"
-curl -s "$URL/contactos"
-echo ""
+probar "GET /contactos  todos los contactos" 200 "$URL/contactos"
+
+probar "GET /contactos?propietarioTipo=ADMIN&propietarioId=1  contactos del admin" 200 "$URL/contactos?propietarioTipo=ADMIN&propietarioId=1"
+
+probar "GET /contactos?propietarioTipo=OTRO  tipo no válido" 400 "$URL/contactos?propietarioTipo=OTRO"
+
+probar "PUT /contactos/$CONTACTO_ID  editar contacto" 200 -X PUT "$URL/contactos/$CONTACTO_ID" -H "$JSON" \
+    -d '{
+        "propietarioTipo": "ADMIN",
+        "propietarioId": 1,
+        "nombre": "Notaría 12 (Lic. Pérez)",
+        "telefono": "55 2222 3333",
+        "email": "contacto@notaria12.mx",
+        "notas": "Escrituras y poderes"
+    }'
+
+probar "PUT /contactos/999  contacto que no existe" 404 -X PUT "$URL/contactos/999" -H "$JSON" \
+    -d '{"propietarioTipo": "ADMIN", "propietarioId": 1, "nombre": "Nadie"}'
+
+probar "DELETE /contactos/$CONTACTO_ID  eliminar contacto" 200 -X DELETE "$URL/contactos/$CONTACTO_ID"
+
+probar "DELETE /contactos/$CONTACTO_ID  ya no existe" 404 -X DELETE "$URL/contactos/$CONTACTO_ID"
 
 
 # =====================================================================

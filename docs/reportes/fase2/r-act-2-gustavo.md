@@ -37,14 +37,14 @@ Inicio de sesión correcto (200):
 ```bash
 curl -i -X POST http://localhost:8081/sesiones \
   -H "Content-Type: application/json" \
-  -d '{"usuario":"admin","contrasena":"admin123"}'
+  -d '{"username":"admin","password":"admin123","rol":"ADMIN"}'
 ```
 
 Inicio de sesión con contraseña incorrecta (401):
 ```bash
 curl -i -X POST http://localhost:8081/sesiones \
   -H "Content-Type: application/json" \
-  -d '{"usuario":"admin","contrasena":"incorrecta"}'
+  -d '{"username":"admin","password":"incorrecta","rol":"ADMIN"}'
 ```
 
 Consultar abogados (200) y un abogado que no existe (404):

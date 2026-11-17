@@ -12,6 +12,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.validation.constraints.NotBlank;
 
 // Datos profesionales del abogado; cada abogado tiene su usuario
 @Entity
@@ -28,6 +29,7 @@ public class Abogado {
     @JoinColumn(name = "usuario_id", nullable = false, unique = true)
     private Usuario usuario;
 
+    @NotBlank(message = "Falta el nombre")
     @Column(nullable = false, length = 100)
     private String nombre;
 
@@ -64,6 +66,50 @@ public class Abogado {
     @Transient
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
+
+    // Indicadores calculados por el servicio con sus casos y clientes (solo de lectura)
+    @Transient
+    private Integer casosActivos;
+
+    @Transient
+    private Integer totalCasos;
+
+    @Transient
+    private Integer casosGanados;
+
+    @Transient
+    private Integer clientes;
+
+    @Transient
+    private Integer efectividad;
+
+    public Integer getCasosActivos() {
+        return casosActivos;
+    }
+
+    public Integer getTotalCasos() {
+        return totalCasos;
+    }
+
+    public Integer getCasosGanados() {
+        return casosGanados;
+    }
+
+    public Integer getClientes() {
+        return clientes;
+    }
+
+    public Integer getEfectividad() {
+        return efectividad;
+    }
+
+    public void ponerIndicadores(int casosActivos, int totalCasos, int casosGanados, int clientes, int efectividad) {
+        this.casosActivos = casosActivos;
+        this.totalCasos = totalCasos;
+        this.casosGanados = casosGanados;
+        this.clientes = clientes;
+        this.efectividad = efectividad;
+    }
 
     public Integer getUsuarioId() {
         if (usuario == null) {

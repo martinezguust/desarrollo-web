@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${sistema} + ' — Estado del backend'">Juris Magna — Estado del backend</title>
+
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f5f3ee;
+            color: #1a1a2e;
+            margin: 0;
+            padding: 24px 16px;
+        }
+
+        main {
+            max-width: 860px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            margin: 0;
+            color: #1a1a2e;
+        }
+
+        .estado {
+            display: inline-block;
+            margin: 8px 0 24px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: #27ae60;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .conteos {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .tarjeta {
+            background: #fff;
+            border-left: 4px solid #d4af37;
+            border-radius: 8px;
+            padding: 14px;
+        }
+
+        .numero {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 8px 10px;
+            border-bottom: 1px solid #e5e1d8;
+        }
+
+        th {
+            background: #1a1a2e;
+            color: #d4af37;
+        }
+
+        .metodo {
+            font-family: monospace;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <h1 th:text="${sistema}">Juris Magna</h1>
+        <div class="estado" th:text="${estado}">Backend funcionando</div>
+
+        <section class="conteos">
+            <div class="tarjeta">
+                <div>Abogados</div>
+                <div class="numero" th:text="${abogados}">0</div>
+            </div>
+
+            <div class="tarjeta">
+                <div>Clientes</div>
+                <div class="numero" th:text="${clientes}">0</div>
+            </div>
+
+            <div class="tarjeta">
+                <div>Casos activos</div>
+                <div class="numero" th:text="${casosActivos}">0</div>
+            </div>
+
+            <div class="tarjeta">
+                <div>Mensajes</div>
+                <div class="numero" th:text="${mensajes}">0</div>
+            </div>
+        </section>
+
+        <h2>Rutas de la API</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Método</th>
+                    <th>Ruta</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr th:each="ruta : ${rutas}">
+                    <td class="metodo" th:text="${ruta.metodo}">GET</td>
+                    <td th:text="${ruta.ruta}">/abogados</td>
+                </tr>
+            </tbody>
+        </table>
+    </main>
+</body>
+
+</html>

@@ -8,60 +8,129 @@
 # Llama directo a Spring (puerto 8081). Con nginx sería
 # http://localhost/api/...
 # Cada integrante agrega sus pruebas en su propia sección.
+# Al final se muestra cuántas pruebas pasaron y cuántas fallaron.
 # =====================================================================
 
 URL="http://localhost:8081"
 
-# Imprime un título antes de cada prueba
+TOTAL=0
+FALLAS=0
+
+# Carpeta temporal para los archivos de prueba (fotos, audios, documentos)
+TEMPORAL=$(mktemp -d)
+trap 'rm -rf "$TEMPORAL"' EXIT
+
+# Imprime un título antes de cada prueba (pruebas que no revisan el código)
 function titulo() {
     echo ""
     echo "=== $1 ==="
 }
 
+# Hace una prueba y revisa el código HTTP:
+#     probar "descripción" código_esperado argumentos_de_curl...
+# Deja la respuesta en CUERPO para poder sacar el id de lo creado.
+function probar() {
+    local descripcion="$1"
+    local esperado="$2"
+    shift 2
+
+    echo ""
+    echo "=== $descripcion (esperado $esperado) ==="
+
+    local respuesta
+    respuesta=$(curl -s -w "\n%{http_code}" "$@")
+    CODIGO=$(echo "$respuesta" | tail -n 1)
+    CUERPO=$(echo "$respuesta" | sed '$d')
+
+    # Respuestas largas se recortan para que la salida se pueda leer
+    if [ ${#CUERPO} -gt 600 ]; then
+        echo "${CUERPO:0:600} ..."
+    else
+        echo "$CUERPO"
+    fi
+
+    TOTAL=$((TOTAL + 1))
+
+    if [ "$CODIGO" == "$esperado" ]; then
+        echo "OK (HTTP $CODIGO)"
+    else
+        echo "FALLA: se esperaba HTTP $esperado y llegó HTTP $CODIGO"
+        FALLAS=$((FALLAS + 1))
+    fi
+}
+
+# Saca el "id" de la última respuesta (por ejemplo, del registro recién creado)
+function id_creado() {
+    echo "$CUERPO" | grep -o '"id":[0-9]*' | head -n 1 | cut -d: -f2
+}
+
+# Imagen PNG de 1x1 píxel y un texto para probar las subidas de archivos
+echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" | base64 -d > "$TEMPORAL/foto.png"
+echo "esto no es una imagen" > "$TEMPORAL/nota.txt"
+
+JSON="Content-Type: application/json"
+
 
 # =====================================================================
-# Pruebas de Gustavo: sesiones, abogados, movimientos
+# Pruebas de Gustavo: página de estado, sesiones, usuarios, abogados,
+# dashboards, finanzas y movimientos
 # =====================================================================
 
-titulo "POST /sesiones  login del admin (200)"
-curl -s -X POST "$URL/sesiones" \
-    -H "Content-Type: application/json" \
+# ---------- Página de estado (Thymeleaf) y errores generales ----------
+
+probar "GET /  página de estado del backend" 200 "$URL/"
+
+if echo "$CUERPO" | grep -q "Backend funcionando"; then
+    echo "La página muestra: Backend funcionando"
+fi
+
+probar "GET /no-existe  ruta que no existe" 404 "$URL/no-existe"
+
+probar "DELETE /finanzas  método no permitido" 405 -X DELETE "$URL/finanzas"
+
+# ---------- Sesiones ----------
+
+probar "POST /sesiones  login del admin" 200 -X POST "$URL/sesiones" -H "$JSON" \
     -d '{"username": "admin", "password": "admin123", "rol": "ADMIN"}'
-echo ""
 
-titulo "POST /sesiones  login de un abogado (200)"
-curl -s -X POST "$URL/sesiones" \
-    -H "Content-Type: application/json" \
+probar "POST /sesiones  login de un abogado" 200 -X POST "$URL/sesiones" -H "$JSON" \
     -d '{"username": "jramirez", "password": "abogado123", "rol": "ABOGADO"}'
-echo ""
 
-titulo "POST /sesiones  contraseña incorrecta (401)"
-curl -s -w "\nHTTP %{http_code}" -X POST "$URL/sesiones" \
-    -H "Content-Type: application/json" \
+probar "POST /sesiones  login de un cliente (devuelve su nombre real)" 200 -X POST "$URL/sesiones" -H "$JSON" \
+    -d '{"username": "cvega", "password": "cliente123", "rol": "CLIENTE"}'
+
+probar "POST /sesiones  contraseña incorrecta" 401 -X POST "$URL/sesiones" -H "$JSON" \
     -d '{"username": "jramirez", "password": "malaclave", "rol": "ABOGADO"}'
-echo ""
 
-titulo "POST /sesiones  rol que no corresponde (401)"
-curl -s -w "\nHTTP %{http_code}" -X POST "$URL/sesiones" \
-    -H "Content-Type: application/json" \
+probar "POST /sesiones  rol que no corresponde" 401 -X POST "$URL/sesiones" -H "$JSON" \
     -d '{"username": "jramirez", "password": "abogado123", "rol": "ADMIN"}'
-echo ""
 
-titulo "GET /abogados  listar abogados (200)"
-curl -s "$URL/abogados"
-echo ""
+probar "POST /sesiones  JSON mal escrito" 400 -X POST "$URL/sesiones" -H "$JSON" \
+    -d '{"username": "admin", '
 
-titulo "GET /abogados/1  detalle de un abogado (200)"
-curl -s "$URL/abogados/1"
-echo ""
+# ---------- Usuarios (perfil del administrador) ----------
 
-titulo "GET /abogados/999  abogado que no existe (404)"
-curl -s -w "\nHTTP %{http_code}" "$URL/abogados/999"
-echo ""
+probar "GET /usuarios/1  perfil del admin" 200 "$URL/usuarios/1"
 
-titulo "POST /abogados  crear abogado y su usuario (200)"
-curl -s -X POST "$URL/abogados" \
-    -H "Content-Type: application/json" \
+probar "GET /usuarios/999  usuario que no existe" 404 "$URL/usuarios/999"
+
+probar "PUT /usuarios/1  editar perfil del admin" 200 -X PUT "$URL/usuarios/1" -H "$JSON" \
+    -d '{"nombre": "Administrador", "email": "admin@jurismagna.mx", "telefono": "55 0000 0000"}'
+
+probar "POST /usuarios/1/foto  subir foto del admin" 200 -X POST "$URL/usuarios/1/foto" \
+    -F "foto=@$TEMPORAL/foto.png"
+
+# ---------- Abogados ----------
+
+probar "GET /abogados  listar abogados con sus indicadores" 200 "$URL/abogados"
+
+probar "GET /abogados/1  detalle de un abogado" 200 "$URL/abogados/1"
+
+probar "GET /abogados/999  abogado que no existe" 404 "$URL/abogados/999"
+
+probar "GET /abogados/abc  id que no es número" 400 "$URL/abogados/abc"
+
+probar "POST /abogados  crear abogado y su usuario" 200 -X POST "$URL/abogados" -H "$JSON" \
     -d '{
         "nombre": "Lic. Andrea Prueba",
         "edad": 30,
@@ -74,47 +143,112 @@ curl -s -X POST "$URL/abogados" \
         "username": "aprueba",
         "password": "abogado123"
     }'
-echo ""
+ABOGADO_ID=$(id_creado)
 
-titulo "POST /abogados  usuario repetido (409)"
-curl -s -w "\nHTTP %{http_code}" -X POST "$URL/abogados" \
-    -H "Content-Type: application/json" \
+probar "POST /abogados  usuario repetido" 409 -X POST "$URL/abogados" -H "$JSON" \
     -d '{"nombre": "Otro", "username": "jramirez", "password": "abogado123"}'
-echo ""
 
-titulo "POST /abogados  sin contraseña (400)"
-curl -s -w "\nHTTP %{http_code}" -X POST "$URL/abogados" \
-    -H "Content-Type: application/json" \
+probar "POST /abogados  sin contraseña" 400 -X POST "$URL/abogados" -H "$JSON" \
     -d '{"nombre": "Sin clave", "username": "sinclave"}'
-echo ""
 
-titulo "POST /sesiones  login del abogado recién creado (200)"
-curl -s -X POST "$URL/sesiones" \
-    -H "Content-Type: application/json" \
-    -d '{"username": "aprueba", "password": "abogado123", "rol": "ABOGADO"}'
-echo ""
+probar "POST /abogados  sin nombre (@Valid)" 400 -X POST "$URL/abogados" -H "$JSON" \
+    -d '{"username": "sinnombre", "password": "abogado123"}'
 
-titulo "GET /movimientos  listar movimientos (200)"
-curl -s "$URL/movimientos"
-echo ""
+probar "PUT /abogados/$ABOGADO_ID  editar abogado" 200 -X PUT "$URL/abogados/$ABOGADO_ID" -H "$JSON" \
+    -d '{
+        "nombre": "Lic. Andrea Prueba Ruiz",
+        "edad": 31,
+        "especialidad": "Derecho Laboral",
+        "estudios": "Maestría UV",
+        "experiencia": "6 años",
+        "cedula": "11223344",
+        "email": "andrea@jurismagna.mx",
+        "telefono": "228 123 4567",
+        "estado": "Activo"
+    }'
 
-titulo "POST /movimientos  crear un ingreso (200)"
-curl -s -X POST "$URL/movimientos" \
-    -H "Content-Type: application/json" \
-    -d '{"tipo": "INGRESO", "concepto": "Honorarios", "monto": 15000, "fecha": "2026-11-12"}'
-echo ""
+probar "PUT /abogados/$ABOGADO_ID  estado no válido" 400 -X PUT "$URL/abogados/$ABOGADO_ID" -H "$JSON" \
+    -d '{"nombre": "Lic. Andrea Prueba Ruiz", "estado": "Vacaciones"}'
 
-titulo "POST /movimientos  concepto que no corresponde al tipo (400)"
-curl -s -w "\nHTTP %{http_code}" -X POST "$URL/movimientos" \
-    -H "Content-Type: application/json" \
-    -d '{"tipo": "INGRESO", "concepto": "Nómina", "monto": 1000, "fecha": "2026-11-12"}'
-echo ""
+probar "PUT /abogados/999  abogado que no existe" 404 -X PUT "$URL/abogados/999" -H "$JSON" \
+    -d '{"nombre": "Nadie"}'
 
-titulo "POST /movimientos  monto negativo (400)"
-curl -s -w "\nHTTP %{http_code}" -X POST "$URL/movimientos" \
-    -H "Content-Type: application/json" \
-    -d '{"tipo": "EGRESO", "concepto": "Renta", "monto": -500, "fecha": "2026-11-12"}'
-echo ""
+probar "PUT /abogados/$ABOGADO_ID/password  cambiar contraseña" 200 -X PUT "$URL/abogados/$ABOGADO_ID/password" -H "$JSON" \
+    -d '{"password": "nueva1234"}'
+
+probar "PUT /abogados/$ABOGADO_ID/password  contraseña muy corta" 400 -X PUT "$URL/abogados/$ABOGADO_ID/password" -H "$JSON" \
+    -d '{"password": "12"}'
+
+probar "POST /sesiones  login con la contraseña nueva" 200 -X POST "$URL/sesiones" -H "$JSON" \
+    -d '{"username": "aprueba", "password": "nueva1234", "rol": "ABOGADO"}'
+
+probar "POST /abogados/$ABOGADO_ID/foto  subir foto" 200 -X POST "$URL/abogados/$ABOGADO_ID/foto" \
+    -F "foto=@$TEMPORAL/foto.png"
+FOTO_URL=$(echo "$CUERPO" | grep -o '/uploads/[^"]*')
+
+probar "GET $FOTO_URL  la foto se puede ver" 200 -o /dev/null "$URL$FOTO_URL"
+
+probar "POST /abogados/$ABOGADO_ID/foto  archivo que no es imagen" 400 -X POST "$URL/abogados/$ABOGADO_ID/foto" \
+    -F "foto=@$TEMPORAL/nota.txt"
+
+probar "POST /abogados/$ABOGADO_ID/foto  sin el campo foto" 400 -X POST "$URL/abogados/$ABOGADO_ID/foto" \
+    -F "otro=@$TEMPORAL/foto.png"
+
+probar "DELETE /abogados/1  abogado con clientes y casos" 409 -X DELETE "$URL/abogados/1"
+
+probar "DELETE /abogados/$ABOGADO_ID  eliminar abogado y su usuario" 200 -X DELETE "$URL/abogados/$ABOGADO_ID"
+
+probar "DELETE /abogados/$ABOGADO_ID  ya no existe" 404 -X DELETE "$URL/abogados/$ABOGADO_ID"
+
+# ---------- Dashboards ----------
+
+probar "GET /dashboards/admin  indicadores del administrador" 200 "$URL/dashboards/admin"
+
+probar "GET /dashboards/abogados/1  indicadores del abogado" 200 "$URL/dashboards/abogados/1"
+
+probar "GET /dashboards/abogados/999  abogado que no existe" 404 "$URL/dashboards/abogados/999"
+
+# ---------- Finanzas y movimientos ----------
+
+probar "GET /finanzas?meses=3  reporte de los últimos 3 meses" 200 "$URL/finanzas?meses=3"
+
+probar "GET /finanzas?meses=13  meses fuera de rango" 400 "$URL/finanzas?meses=13"
+
+probar "GET /finanzas?meses=abc  meses no es número" 400 "$URL/finanzas?meses=abc"
+
+probar "GET /movimientos  listar movimientos" 200 "$URL/movimientos"
+
+probar "GET /movimientos?anio=2026&mes=10  movimientos de octubre" 200 "$URL/movimientos?anio=2026&mes=10"
+
+probar "GET /movimientos?mes=10  falta el año" 400 "$URL/movimientos?mes=10"
+
+probar "GET /movimientos?anio=2026&mes=13  mes no válido" 400 "$URL/movimientos?anio=2026&mes=13"
+
+probar "POST /movimientos  crear un ingreso" 200 -X POST "$URL/movimientos" -H "$JSON" \
+    -d '{"tipo": "INGRESO", "concepto": "Honorarios", "monto": 15000, "fecha": "2026-10-12"}'
+MOVIMIENTO_ID=$(id_creado)
+
+probar "POST /movimientos  concepto que no corresponde al tipo" 400 -X POST "$URL/movimientos" -H "$JSON" \
+    -d '{"tipo": "INGRESO", "concepto": "Nómina", "monto": 1000, "fecha": "2026-10-12"}'
+
+probar "POST /movimientos  monto negativo (@Valid)" 400 -X POST "$URL/movimientos" -H "$JSON" \
+    -d '{"tipo": "EGRESO", "concepto": "Renta", "monto": -500, "fecha": "2026-10-12"}'
+
+probar "POST /movimientos  faltan campos (@Valid)" 400 -X POST "$URL/movimientos" -H "$JSON" \
+    -d '{"tipo": "EGRESO"}'
+
+probar "POST /movimientos  fecha con formato incorrecto" 400 -X POST "$URL/movimientos" -H "$JSON" \
+    -d '{"tipo": "EGRESO", "concepto": "Renta", "monto": 500, "fecha": "12/10/2026"}'
+
+probar "PUT /movimientos/$MOVIMIENTO_ID  editar movimiento" 200 -X PUT "$URL/movimientos/$MOVIMIENTO_ID" -H "$JSON" \
+    -d '{"tipo": "INGRESO", "concepto": "Consultas y asesorías", "monto": 18000, "fecha": "2026-10-13"}'
+
+probar "PUT /movimientos/999  movimiento que no existe" 404 -X PUT "$URL/movimientos/999" -H "$JSON" \
+    -d '{"tipo": "INGRESO", "concepto": "Honorarios", "monto": 100, "fecha": "2026-10-13"}'
+
+probar "DELETE /movimientos/$MOVIMIENTO_ID  eliminar movimiento" 200 -X DELETE "$URL/movimientos/$MOVIMIENTO_ID"
+
+probar "DELETE /movimientos/$MOVIMIENTO_ID  ya no existe" 404 -X DELETE "$URL/movimientos/$MOVIMIENTO_ID"
 
 
 # =====================================================================
@@ -381,3 +515,13 @@ echo ""
 titulo "GET /contactos  listar contactos (200)"
 curl -s "$URL/contactos"
 echo ""
+
+
+# =====================================================================
+# Resumen
+# =====================================================================
+
+echo ""
+echo "====================================================================="
+echo "Pruebas revisadas: $TOTAL    Fallas: $FALLAS"
+echo "====================================================================="

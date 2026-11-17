@@ -10,8 +10,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import mx.uv.fei.jurismagna.modelo.Abogado;
+import mx.uv.fei.jurismagna.modelo.Cliente;
 import mx.uv.fei.jurismagna.modelo.Usuario;
 import mx.uv.fei.jurismagna.repositorio.AbogadoRepositorio;
+import mx.uv.fei.jurismagna.repositorio.ClienteRepositorio;
 import mx.uv.fei.jurismagna.repositorio.UsuarioRepositorio;
 
 @Service
@@ -22,6 +24,9 @@ public class SesionServicio {
 
     @Autowired
     AbogadoRepositorio abogadoRepositorio;
+
+    @Autowired
+    ClienteRepositorio clienteRepositorio;
 
     BCryptPasswordEncoder encriptador = new BCryptPasswordEncoder();
 
@@ -48,11 +53,22 @@ public class SesionServicio {
 
         if (rol.equals("ABOGADO")) {
             Abogado abogado = abogadoRepositorio.findByUsuario_Id(usuario.getId());
-            nombre = abogado.getNombre();
-            perfilId = abogado.getId();
+
+            if (abogado != null) {
+                nombre = abogado.getNombre();
+                perfilId = abogado.getId();
+            }
         }
 
-        // Pendiente Fase 2.Danna: nombre y perfilId del CLIENTE salen de la tabla cliente
+        if (rol.equals("CLIENTE")) {
+            Cliente cliente = clienteRepositorio.findByUsuario_Id(usuario.getId());
+
+            if (cliente != null) {
+                nombre = cliente.getNombre();
+                perfilId = cliente.getId();
+            }
+        }
+
         if (nombre == null) {
             nombre = usuario.getUsername();
         }

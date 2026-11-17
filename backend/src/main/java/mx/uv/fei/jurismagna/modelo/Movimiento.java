@@ -9,6 +9,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 
 // Ingreso o egreso del despacho; de aquí salen finanzas y dashboard
 @Entity
@@ -20,16 +23,21 @@ public class Movimiento {
     private Integer id;
 
     // INGRESO o EGRESO
+    @NotBlank(message = "Falta el tipo")
     @Column(nullable = false, length = 10)
     private String tipo;
 
+    @NotBlank(message = "Falta el concepto")
     @Column(nullable = false, length = 30)
     private String concepto;
 
     // Siempre positivo; el tipo dice si suma o resta
+    @NotNull(message = "Falta el monto")
+    @Positive(message = "El monto debe ser mayor que 0")
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal monto;
 
+    @NotNull(message = "Falta la fecha")
     @Column(nullable = false)
     private LocalDate fecha;
 

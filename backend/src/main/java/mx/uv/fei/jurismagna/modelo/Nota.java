@@ -13,6 +13,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.validation.constraints.NotBlank;
 
 // Nota privada del abogado
 @Entity
@@ -28,6 +29,7 @@ public class Nota {
     @JoinColumn(name = "abogado_id", nullable = false)
     private Abogado abogado;
 
+    @NotBlank(message = "Falta el título")
     @Column(nullable = false, length = 150)
     private String titulo;
 

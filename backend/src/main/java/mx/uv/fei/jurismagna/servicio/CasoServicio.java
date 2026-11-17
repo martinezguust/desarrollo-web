@@ -18,7 +18,7 @@ import mx.uv.fei.jurismagna.repositorio.ClienteRepositorio;
 @Service
 public class CasoServicio {
 
-    // Las 18 materias del formulario original
+    // Las 18 materias del formulario
     static final List<String> MATERIAS = List.of(
             "Civil", "Penal", "Mercantil", "Familiar", "Laboral", "Administrativo",
             "Agrario", "Constitucional", "Fiscal / Tributario", "Ambiental", "Internacional",
@@ -39,8 +39,25 @@ public class CasoServicio {
     @Autowired
     AbogadoRepositorio abogadoRepositorio;
 
-    public List<Caso> listar() {
-        return casoRepositorio.findAll();
+    // Filtros opcionales: /casos?abogadoId=1&clienteId=2&materia=Civil&estado=Activo&q=EXP-0001
+    public List<Caso> listar(Integer abogadoId, Integer clienteId, String materia, String estado, String q) {
+        return casoRepositorio.buscar(abogadoId, clienteId, textoONull(materia), textoONull(estado), textoONull(q));
+    }
+
+    // Archivo histórico: estado vacío = los tres estados cerrados
+    public List<Caso> historico(String estado, String q) {
+        List<String> estados = ESTADOS_CERRADOS;
+
+        if (textoONull(estado) != null) {
+            if (!ESTADOS_CERRADOS.contains(estado)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "En el histórico el estado debe ser Ganado, Perdido o Cancelado");
+            }
+
+            estados = List.of(estado);
+        }
+
+        return casoRepositorio.historico(estados, textoONull(q));
     }
 
     public Caso buscar(Integer id) {
@@ -49,43 +66,75 @@ public class CasoServicio {
     }
 
     public Caso crear(Caso caso) {
-        if (caso.getClienteId() == null || caso.getAbogadoId() == null || caso.getMateria() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Faltan el cliente, el abogado o la materia");
+        caso.setId(null);
+        caso.setNumeroExpediente(siguienteExpediente());
+        caso.setFechaInicio(LocalDate.now());
+
+        aplicarDatos(caso, caso);
+
+        return casoRepositorio.save(caso);
+    }
+
+    // Mismo cuerpo que el POST; el número de expediente y la fecha de inicio no cambian
+    public Caso editar(Integer id, Caso datos) {
+        Caso caso = buscar(id);
+        aplicarDatos(caso, datos);
+
+        return casoRepositorio.save(caso);
+    }
+
+    // Al borrar el caso, la base de datos borra sus carpetas y ligas (ON DELETE CASCADE)
+    public void eliminar(Integer id) {
+        casoRepositorio.delete(buscar(id));
+    }
+
+    // Valida los datos y los copia al caso. La materia vacía la revisa @Valid.
+    private void aplicarDatos(Caso caso, Caso datos) {
+        if (datos.getClienteId() == null || datos.getAbogadoId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Faltan el cliente o el abogado");
         }
 
-        if (!MATERIAS.contains(caso.getMateria())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La materia " + caso.getMateria() + " no es válida");
+        if (!MATERIAS.contains(datos.getMateria())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La materia " + datos.getMateria() + " no es válida");
         }
 
-        if (caso.getEstado() == null || caso.getEstado().isBlank()) {
-            caso.setEstado("Activo");
+        String estado = datos.getEstado();
+
+        if (estado == null || estado.isBlank()) {
+            estado = "Activo";
         }
 
-        if (!ESTADOS.contains(caso.getEstado())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El estado " + caso.getEstado() + " no es válido");
+        if (!ESTADOS.contains(estado)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El estado " + estado + " no es válido");
         }
 
-        Cliente cliente = clienteRepositorio.findById(caso.getClienteId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe el cliente " + caso.getClienteId()));
+        Cliente cliente = clienteRepositorio.findById(datos.getClienteId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe el cliente " + datos.getClienteId()));
 
-        Abogado abogado = abogadoRepositorio.findById(caso.getAbogadoId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe el abogado " + caso.getAbogadoId()));
+        Abogado abogado = abogadoRepositorio.findById(datos.getAbogadoId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe el abogado " + datos.getAbogadoId()));
 
         if (!cliente.getAbogado().getId().equals(abogado.getId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El cliente no pertenece a ese abogado");
         }
 
-        caso.setId(null);
         caso.setCliente(cliente);
         caso.setAbogado(abogado);
-        caso.setNumeroExpediente(siguienteExpediente());
-        caso.setFechaInicio(LocalDate.now());
+        caso.setMateria(datos.getMateria());
+        caso.setDriveUrl(datos.getDriveUrl());
 
-        if (ESTADOS_CERRADOS.contains(caso.getEstado()) && caso.getFechaFin() == null) {
-            caso.setFechaFin(LocalDate.now());
+        // Fecha de fin: al cerrar se llena (si no venía, con la de hoy); al reabrir se quita
+        if (ESTADOS_CERRADOS.contains(estado)) {
+            if (datos.getFechaFin() != null) {
+                caso.setFechaFin(datos.getFechaFin());
+            } else if (caso.getFechaFin() == null) {
+                caso.setFechaFin(LocalDate.now());
+            }
+        } else {
+            caso.setFechaFin(null);
         }
 
-        return casoRepositorio.save(caso);
+        caso.setEstado(estado);
     }
 
     // EXP-0005 -> EXP-0006; si no hay casos empieza en EXP-0001
@@ -98,5 +147,13 @@ public class CasoServicio {
         }
 
         return String.format("EXP-%04d", numero);
+    }
+
+    private String textoONull(String texto) {
+        if (texto == null || texto.isBlank()) {
+            return null;
+        }
+
+        return texto.trim();
     }
 }

@@ -15,6 +15,10 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PositiveOrZero;
 
 // Cliente del despacho; tiene su usuario (rol CLIENTE) y un abogado asignado
 @Entity
@@ -36,6 +40,7 @@ public class Cliente {
     @JoinColumn(name = "abogado_id", nullable = false)
     private Abogado abogado;
 
+    @NotBlank(message = "Falta el nombre")
     @Column(nullable = false, length = 100)
     private String nombre;
 
@@ -57,9 +62,12 @@ public class Cliente {
     private String descripcion;
 
     // Porcentaje de avance del caso (0 a 100)
+    @Min(value = 0, message = "El avance debe estar entre 0 y 100")
+    @Max(value = 100, message = "El avance debe estar entre 0 y 100")
     @Column(nullable = false)
     private Integer avance = 0;
 
+    @PositiveOrZero(message = "Los honorarios no pueden ser negativos")
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal honorarios = BigDecimal.ZERO;
 

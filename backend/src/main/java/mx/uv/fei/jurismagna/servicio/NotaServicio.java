@@ -31,9 +31,10 @@ public class NotaServicio {
         return notaRepositorio.findByAbogado_IdOrderByFechaDescIdDesc(abogadoId);
     }
 
+    // El título lo revisa @Valid
     public Nota crear(Nota nota) {
-        if (nota.getAbogadoId() == null || nota.getTitulo() == null || nota.getTitulo().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Faltan el abogadoId o el título");
+        if (nota.getAbogadoId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Falta el abogadoId");
         }
 
         Abogado abogado = abogadoRepositorio.findById(nota.getAbogadoId())
@@ -45,5 +46,28 @@ public class NotaServicio {
         nota.setFecha(LocalDate.now());
 
         return notaRepositorio.save(nota);
+    }
+
+    // Edita el título y el contenido o la marca como completada; el abogado y la fecha no cambian
+    public Nota editar(Integer id, Nota datos) {
+        Nota nota = buscar(id);
+
+        nota.setTitulo(datos.getTitulo());
+        nota.setContenido(datos.getContenido());
+
+        if (datos.getCompletada() != null) {
+            nota.setCompletada(datos.getCompletada());
+        }
+
+        return notaRepositorio.save(nota);
+    }
+
+    public void eliminar(Integer id) {
+        notaRepositorio.delete(buscar(id));
+    }
+
+    private Nota buscar(Integer id) {
+        return notaRepositorio.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe la nota " + id));
     }
 }

@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
 
 // Enlace guardado dentro de una carpeta
 @Entity
@@ -33,6 +34,7 @@ public class Liga {
     @Column(nullable = false, length = 150)
     private String nombre;
 
+    @NotBlank(message = "Falta la URL de la liga")
     @Column(nullable = false, length = 255)
     private String url;
 

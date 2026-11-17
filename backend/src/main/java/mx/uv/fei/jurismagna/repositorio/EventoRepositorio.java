@@ -1,5 +1,6 @@
 package mx.uv.fei.jurismagna.repositorio;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,4 +11,7 @@ public interface EventoRepositorio extends JpaRepository<Evento, Integer> {
 
     // Eventos de una agenda ordenados por fecha y hora
     List<Evento> findByAlcanceOrderByFechaAscHoraAsc(String alcance);
+
+    // Eventos de una agenda entre dos fechas (un mes del calendario)
+    List<Evento> findByAlcanceAndFechaBetweenOrderByFechaAscHoraAsc(String alcance, LocalDate inicio, LocalDate fin);
 }

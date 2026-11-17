@@ -11,4 +11,7 @@ public interface NotificacionRepositorio extends JpaRepository<Notificacion, Int
     // Notificaciones de un usuario, de la más reciente a la más antigua.
     // El "_" indica que se busca por usuario.id
     List<Notificacion> findByUsuario_IdOrderByFechaHoraDescIdDesc(Integer usuarioId);
+
+    // Las que el usuario todavía no ha leído
+    List<Notificacion> findByUsuario_IdAndLeidaFalse(Integer usuarioId);
 }

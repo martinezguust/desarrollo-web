@@ -7,6 +7,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 // Contacto agregado a mano por el admin o por un abogado.
 // propietarioId es el id del usuario dueño del contacto.
@@ -19,12 +21,15 @@ public class Contacto {
     private Integer id;
 
     // ADMIN o ABOGADO
+    @NotBlank(message = "Falta el propietarioTipo")
     @Column(nullable = false, length = 10)
     private String propietarioTipo;
 
+    @NotNull(message = "Falta el propietarioId")
     @Column(nullable = false)
     private Integer propietarioId;
 
+    @NotBlank(message = "Falta el nombre")
     @Column(nullable = false, length = 100)
     private String nombre;
 

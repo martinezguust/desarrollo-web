@@ -10,4 +10,7 @@ public interface MensajeRepositorio extends JpaRepository<Mensaje, Integer> {
 
     // Mensajes de una conversación en orden cronológico
     List<Mensaje> findByHiloOrderByFechaHoraAscIdAsc(String hilo);
+
+    // Mensajes sin leer del hilo que NO envió el lector (los que él recibió)
+    List<Mensaje> findByHiloAndRemitenteNotAndLeidoFalse(String hilo, String lector);
 }

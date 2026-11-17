@@ -16,6 +16,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.validation.constraints.NotBlank;
 
 // Aviso de la campana del admin y del abogado
 @Entity
@@ -33,6 +34,7 @@ public class Notificacion {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Usuario usuario;
 
+    @NotBlank(message = "Falta el mensaje")
     @Column(nullable = false, length = 255)
     private String mensaje;
 

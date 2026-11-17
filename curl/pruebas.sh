@@ -252,24 +252,24 @@ probar "DELETE /movimientos/$MOVIMIENTO_ID  ya no existe" 404 -X DELETE "$URL/mo
 
 
 # =====================================================================
-# Pruebas de Danna: clientes, casos, carpetas, ligas, notas
+# Pruebas de Danna: clientes, casos, histórico, carpetas, ligas y notas
 # =====================================================================
 
-titulo "GET /clientes  listar clientes (200)"
-curl -s "$URL/clientes"
-echo ""
+# ---------- Clientes ----------
 
-titulo "GET /clientes/1  detalle de un cliente (200)"
-curl -s "$URL/clientes/1"
-echo ""
+probar "GET /clientes  listar clientes" 200 "$URL/clientes"
 
-titulo "GET /clientes/999  cliente que no existe (404)"
-curl -s -w "\nHTTP %{http_code}" "$URL/clientes/999"
-echo ""
+probar "GET /clientes?abogadoId=1  clientes del Dr. Juan Ramírez" 200 "$URL/clientes?abogadoId=1"
 
-titulo "POST /clientes  crear cliente y su usuario (200)"
-curl -s -X POST "$URL/clientes" \
-    -H "Content-Type: application/json" \
+probar "GET /clientes?q=vega  buscar por nombre" 200 "$URL/clientes?q=vega"
+
+probar "GET /clientes?abogadoId=abc  filtro con tipo incorrecto" 400 "$URL/clientes?abogadoId=abc"
+
+probar "GET /clientes/1  detalle de un cliente" 200 "$URL/clientes/1"
+
+probar "GET /clientes/999  cliente que no existe" 404 "$URL/clientes/999"
+
+probar "POST /clientes  crear cliente y su usuario" 200 -X POST "$URL/clientes" -H "$JSON" \
     -d '{
         "abogadoId": 1,
         "nombre": "Laura Prueba",
@@ -286,114 +286,187 @@ curl -s -X POST "$URL/clientes" \
         "driveUrl": "",
         "comentario": "Hola Laura, ya estamos revisando tu contrato."
     }'
-echo ""
+CLIENTE_ID=$(id_creado)
 
-titulo "POST /clientes  usuario repetido (409)"
-curl -s -w "\nHTTP %{http_code}" -X POST "$URL/clientes" \
-    -H "Content-Type: application/json" \
-    -d '{"abogadoId": 1, "nombre": "Otro", "username": "cvega", "password": "cliente123"}'
-echo ""
+probar "GET /notificaciones?usuarioId=1  el admin recibe el aviso del cliente nuevo" 200 "$URL/notificaciones?usuarioId=1"
 
-titulo "POST /clientes  avance fuera de rango (400)"
-curl -s -w "\nHTTP %{http_code}" -X POST "$URL/clientes" \
-    -H "Content-Type: application/json" \
-    -d '{"abogadoId": 1, "nombre": "Avance malo", "username": "avmalo", "password": "cliente123", "avance": 150}'
-echo ""
+if echo "$CUERPO" | grep -q "agregó a Laura Prueba"; then
+    echo "Aviso encontrado: Dr. Juan Ramírez agregó a Laura Prueba"
+else
+    echo "FALLA: no apareció el aviso del cliente nuevo"
+    FALLAS=$((FALLAS + 1))
+fi
 
-titulo "POST /clientes  abogado que no existe (404)"
-curl -s -w "\nHTTP %{http_code}" -X POST "$URL/clientes" \
-    -H "Content-Type: application/json" \
-    -d '{"abogadoId": 999, "nombre": "Sin abogado", "username": "sinabogado", "password": "cliente123"}'
-echo ""
-
-titulo "POST /sesiones  login del cliente recién creado (200)"
-curl -s -X POST "$URL/sesiones" \
-    -H "Content-Type: application/json" \
+probar "POST /sesiones  login del cliente nuevo (nombre real)" 200 -X POST "$URL/sesiones" -H "$JSON" \
     -d '{"username": "lprueba", "password": "cliente123", "rol": "CLIENTE"}'
-echo ""
 
-titulo "GET /casos  listar casos (200)"
-curl -s "$URL/casos"
-echo ""
+probar "POST /clientes  usuario repetido" 409 -X POST "$URL/clientes" -H "$JSON" \
+    -d '{"abogadoId": 1, "nombre": "Otro", "username": "cvega", "password": "cliente123"}'
 
-titulo "GET /casos/3  detalle de un caso (200)"
-curl -s "$URL/casos/3"
-echo ""
+probar "POST /clientes  avance fuera de rango (@Valid)" 400 -X POST "$URL/clientes" -H "$JSON" \
+    -d '{"abogadoId": 1, "nombre": "Avance malo", "username": "avmalo", "password": "cliente123", "avance": 150}'
 
-titulo "POST /casos  crear caso; genera el siguiente expediente (200)"
-curl -s -X POST "$URL/casos" \
-    -H "Content-Type: application/json" \
-    -d '{"clienteId": 2, "abogadoId": 1, "materia": "Familiar", "estado": "Activo", "driveUrl": ""}'
-echo ""
+probar "POST /clientes  sin nombre (@Valid)" 400 -X POST "$URL/clientes" -H "$JSON" \
+    -d '{"abogadoId": 1, "username": "sinnombre", "password": "cliente123"}'
 
-titulo "POST /casos  caso cerrado; llena la fecha de fin (200)"
-curl -s -X POST "$URL/casos" \
-    -H "Content-Type: application/json" \
-    -d '{"clienteId": 3, "abogadoId": 2, "materia": "Penal", "estado": "Cancelado"}'
-echo ""
+probar "POST /clientes  abogado que no existe" 404 -X POST "$URL/clientes" -H "$JSON" \
+    -d '{"abogadoId": 999, "nombre": "Sin abogado", "username": "sinabogado", "password": "cliente123"}'
 
-titulo "POST /casos  materia no válida (400)"
-curl -s -w "\nHTTP %{http_code}" -X POST "$URL/casos" \
-    -H "Content-Type: application/json" \
+probar "PUT /clientes/$CLIENTE_ID  editar avance y comentario (sin cambiar contraseña)" 200 -X PUT "$URL/clientes/$CLIENTE_ID" -H "$JSON" \
+    -d '{
+        "abogadoId": 1,
+        "nombre": "Laura Prueba",
+        "edad": 29,
+        "estudios": "Arquitectura",
+        "ine": "PRUL970101",
+        "email": "laura@mail.com",
+        "telefono": "228 765 4321",
+        "username": "lprueba",
+        "password": "",
+        "descripcion": "Revisión de contrato de compraventa",
+        "avance": 40,
+        "honorarios": 22000,
+        "driveUrl": "https://drive.google.com/laura",
+        "comentario": "Laura, ya revisamos el contrato; falta tu firma.",
+        "estado": "Activo"
+    }'
+
+probar "POST /sesiones  la contraseña no cambió" 200 -X POST "$URL/sesiones" -H "$JSON" \
+    -d '{"username": "lprueba", "password": "cliente123", "rol": "CLIENTE"}'
+
+probar "PUT /clientes/$CLIENTE_ID  honorarios negativos (@Valid)" 400 -X PUT "$URL/clientes/$CLIENTE_ID" -H "$JSON" \
+    -d '{"abogadoId": 1, "nombre": "Laura Prueba", "honorarios": -5}'
+
+probar "PUT /clientes/$CLIENTE_ID  usuario que ya usa otro cliente" 409 -X PUT "$URL/clientes/$CLIENTE_ID" -H "$JSON" \
+    -d '{"abogadoId": 1, "nombre": "Laura Prueba", "username": "cvega"}'
+
+probar "PUT /clientes/999  cliente que no existe" 404 -X PUT "$URL/clientes/999" -H "$JSON" \
+    -d '{"abogadoId": 1, "nombre": "Nadie"}'
+
+# ---------- Casos ----------
+
+probar "GET /casos  listar casos" 200 "$URL/casos"
+
+probar "GET /casos?abogadoId=2&materia=Penal  filtrar por abogado y materia" 200 "$URL/casos?abogadoId=2&materia=Penal"
+
+probar "GET /casos?estado=Activo&q=vega  filtrar por estado y buscar" 200 "$URL/casos?estado=Activo&q=vega"
+
+probar "GET /casos/3  detalle de un caso" 200 "$URL/casos/3"
+
+probar "GET /casos/999  caso que no existe" 404 "$URL/casos/999"
+
+probar "POST /casos  crear caso; genera el siguiente expediente" 200 -X POST "$URL/casos" -H "$JSON" \
+    -d "{\"clienteId\": $CLIENTE_ID, \"abogadoId\": 1, \"materia\": \"Inmobiliario\", \"estado\": \"Activo\", \"driveUrl\": \"\"}"
+CASO_ID=$(id_creado)
+
+probar "POST /casos  materia no válida" 400 -X POST "$URL/casos" -H "$JSON" \
     -d '{"clienteId": 1, "abogadoId": 1, "materia": "Espacial"}'
-echo ""
 
-titulo "POST /casos  el cliente no es de ese abogado (400)"
-curl -s -w "\nHTTP %{http_code}" -X POST "$URL/casos" \
-    -H "Content-Type: application/json" \
+probar "POST /casos  sin materia (@Valid)" 400 -X POST "$URL/casos" -H "$JSON" \
+    -d '{"clienteId": 1, "abogadoId": 1}'
+
+probar "POST /casos  el cliente no es de ese abogado" 400 -X POST "$URL/casos" -H "$JSON" \
     -d '{"clienteId": 3, "abogadoId": 1, "materia": "Civil"}'
-echo ""
 
-titulo "GET /casos/1/carpetas  carpetas del caso (200)"
-curl -s "$URL/casos/1/carpetas"
-echo ""
+probar "POST /casos  estado no válido" 400 -X POST "$URL/casos" -H "$JSON" \
+    -d '{"clienteId": 1, "abogadoId": 1, "materia": "Civil", "estado": "Pausado"}'
 
-titulo "POST /casos/1/carpetas  crear carpeta (200)"
-curl -s -X POST "$URL/casos/1/carpetas" \
-    -H "Content-Type: application/json" \
-    -d '{"numero": "002", "materia": "Civil", "proyecto": "Pruebas periciales", "estado": "Activo", "ligaUrl": "https://drive.google.com/periciales"}'
-echo ""
+probar "PUT /casos/$CASO_ID  cerrar el caso como Ganado (llena la fecha de fin)" 200 -X PUT "$URL/casos/$CASO_ID" -H "$JSON" \
+    -d "{\"clienteId\": $CLIENTE_ID, \"abogadoId\": 1, \"materia\": \"Inmobiliario\", \"estado\": \"Ganado\", \"driveUrl\": \"https://drive.google.com/laura-caso\"}"
 
-titulo "GET /casos/999/carpetas  caso que no existe (404)"
-curl -s -w "\nHTTP %{http_code}" "$URL/casos/999/carpetas"
-echo ""
+probar "PUT /casos/999  caso que no existe" 404 -X PUT "$URL/casos/999" -H "$JSON" \
+    -d '{"clienteId": 1, "abogadoId": 1, "materia": "Civil"}'
 
-titulo "POST /carpetas/1/ligas  agregar liga sin nombre; usa la URL (200)"
-curl -s -X POST "$URL/carpetas/1/ligas" \
-    -H "Content-Type: application/json" \
+# ---------- Archivo histórico ----------
+
+probar "GET /casos/historico  casos cerrados" 200 "$URL/casos/historico"
+
+probar "GET /casos/historico?estado=Ganado&q=laura  ganados de Laura" 200 "$URL/casos/historico?estado=Ganado&q=laura"
+
+probar "GET /casos/historico?estado=Activo  estado que no es cerrado" 400 "$URL/casos/historico?estado=Activo"
+
+# ---------- Carpetas y ligas ----------
+
+probar "GET /casos/1/carpetas  carpetas del caso" 200 "$URL/casos/1/carpetas"
+
+probar "GET /casos/999/carpetas  caso que no existe" 404 "$URL/casos/999/carpetas"
+
+probar "POST /casos/$CASO_ID/carpetas  crear carpeta" 200 -X POST "$URL/casos/$CASO_ID/carpetas" -H "$JSON" \
+    -d '{"numero": "001", "materia": "Inmobiliario", "proyecto": "Compraventa", "estado": "Activo", "ligaUrl": "https://drive.google.com/compraventa"}'
+CARPETA_ID=$(id_creado)
+
+probar "PUT /carpetas/$CARPETA_ID  editar carpeta" 200 -X PUT "$URL/carpetas/$CARPETA_ID" -H "$JSON" \
+    -d '{"numero": "001", "materia": "Inmobiliario", "proyecto": "Compraventa casa", "estado": "Cerrado", "ligaUrl": "https://drive.google.com/compraventa"}'
+
+probar "PUT /carpetas/999  carpeta que no existe" 404 -X PUT "$URL/carpetas/999" -H "$JSON" \
+    -d '{"numero": "001"}'
+
+probar "POST /carpetas/$CARPETA_ID/ligas  liga sin nombre (usa la URL)" 200 -X POST "$URL/carpetas/$CARPETA_ID/ligas" -H "$JSON" \
     -d '{"url": "https://drive.google.com/escritura"}'
-echo ""
+LIGA_ID=$(id_creado)
 
-titulo "POST /carpetas/1/ligas  liga sin URL (400)"
-curl -s -w "\nHTTP %{http_code}" -X POST "$URL/carpetas/1/ligas" \
-    -H "Content-Type: application/json" \
+probar "POST /carpetas/$CARPETA_ID/ligas  liga con nombre" 200 -X POST "$URL/carpetas/$CARPETA_ID/ligas" -H "$JSON" \
+    -d '{"nombre": "Avalúo", "url": "https://drive.google.com/avaluo"}'
+
+probar "POST /carpetas/$CARPETA_ID/ligas  liga sin URL (@Valid)" 400 -X POST "$URL/carpetas/$CARPETA_ID/ligas" -H "$JSON" \
     -d '{"nombre": "Sin URL"}'
-echo ""
 
-titulo "GET /carpetas/1/ligas  ligas de la carpeta (200)"
-curl -s "$URL/carpetas/1/ligas"
-echo ""
+probar "GET /carpetas/$CARPETA_ID/ligas  ligas de la carpeta" 200 "$URL/carpetas/$CARPETA_ID/ligas"
 
-titulo "POST /notas  crear nota (200)"
-curl -s -X POST "$URL/notas" \
-    -H "Content-Type: application/json" \
+probar "DELETE /ligas/$LIGA_ID  eliminar liga" 200 -X DELETE "$URL/ligas/$LIGA_ID"
+
+probar "DELETE /ligas/$LIGA_ID  ya no existe" 404 -X DELETE "$URL/ligas/$LIGA_ID"
+
+probar "DELETE /carpetas/$CARPETA_ID  eliminar carpeta (y su liga)" 200 -X DELETE "$URL/carpetas/$CARPETA_ID"
+
+probar "GET /carpetas/$CARPETA_ID/ligas  la carpeta ya no existe" 404 "$URL/carpetas/$CARPETA_ID/ligas"
+
+# ---------- Eliminar cliente y caso ----------
+
+probar "DELETE /clientes/$CLIENTE_ID  cliente con casos" 409 -X DELETE "$URL/clientes/$CLIENTE_ID"
+
+probar "POST /casos/$CASO_ID/carpetas  otra carpeta para probar el borrado en cascada" 200 -X POST "$URL/casos/$CASO_ID/carpetas" -H "$JSON" \
+    -d '{"numero": "002", "proyecto": "Escrituras"}'
+
+probar "DELETE /casos/$CASO_ID  eliminar caso (y sus carpetas)" 200 -X DELETE "$URL/casos/$CASO_ID"
+
+probar "GET /casos/$CASO_ID/carpetas  el caso ya no existe" 404 "$URL/casos/$CASO_ID/carpetas"
+
+probar "DELETE /clientes/$CLIENTE_ID  eliminar cliente sin casos (y su usuario)" 200 -X DELETE "$URL/clientes/$CLIENTE_ID"
+
+probar "DELETE /clientes/$CLIENTE_ID  ya no existe" 404 -X DELETE "$URL/clientes/$CLIENTE_ID"
+
+probar "POST /sesiones  el usuario del cliente eliminado ya no entra" 401 -X POST "$URL/sesiones" -H "$JSON" \
+    -d '{"username": "lprueba", "password": "cliente123", "rol": "CLIENTE"}'
+
+# ---------- Notas ----------
+
+probar "POST /notas  crear nota" 200 -X POST "$URL/notas" -H "$JSON" \
     -d '{"abogadoId": 1, "titulo": "Preparar audiencia", "contenido": "Revisar contrato de arrendamiento"}'
-echo ""
+NOTA_ID=$(id_creado)
 
-titulo "POST /notas  sin título (400)"
-curl -s -w "\nHTTP %{http_code}" -X POST "$URL/notas" \
-    -H "Content-Type: application/json" \
+probar "POST /notas  sin título (@Valid)" 400 -X POST "$URL/notas" -H "$JSON" \
     -d '{"abogadoId": 1, "contenido": "Nota sin título"}'
-echo ""
 
-titulo "GET /notas?abogadoId=1  notas del abogado (200)"
-curl -s "$URL/notas?abogadoId=1"
-echo ""
+probar "POST /notas  abogado que no existe" 404 -X POST "$URL/notas" -H "$JSON" \
+    -d '{"abogadoId": 999, "titulo": "Nota"}'
 
-titulo "GET /notas  sin abogadoId (400)"
-curl -s -w "\nHTTP %{http_code}" "$URL/notas"
-echo ""
+probar "GET /notas?abogadoId=1  notas del abogado" 200 "$URL/notas?abogadoId=1"
 
+probar "GET /notas  sin abogadoId" 400 "$URL/notas"
+
+probar "PUT /notas/$NOTA_ID  marcar como completada" 200 -X PUT "$URL/notas/$NOTA_ID" -H "$JSON" \
+    -d '{"titulo": "Preparar audiencia", "contenido": "Revisar contrato de arrendamiento", "completada": true}'
+
+probar "PUT /notas/$NOTA_ID  sin título (@Valid)" 400 -X PUT "$URL/notas/$NOTA_ID" -H "$JSON" \
+    -d '{"titulo": "", "completada": true}'
+
+probar "PUT /notas/999  nota que no existe" 404 -X PUT "$URL/notas/999" -H "$JSON" \
+    -d '{"titulo": "Nada"}'
+
+probar "DELETE /notas/$NOTA_ID  eliminar nota" 200 -X DELETE "$URL/notas/$NOTA_ID"
+
+probar "DELETE /notas/$NOTA_ID  ya no existe" 404 -X DELETE "$URL/notas/$NOTA_ID"
 
 
 # =====================================================================

@@ -13,6 +13,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.validation.constraints.NotBlank;
 
 // Caso (expediente); el backend genera el número EXP-0001, EXP-0002, ...
 @Entity
@@ -36,6 +37,7 @@ public class Caso {
     @JoinColumn(name = "abogado_id", nullable = false)
     private Abogado abogado;
 
+    @NotBlank(message = "Falta la materia")
     @Column(nullable = false, length = 40)
     private String materia;
 

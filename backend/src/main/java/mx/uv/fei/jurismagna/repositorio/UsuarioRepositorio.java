@@ -1,5 +1,7 @@
 package mx.uv.fei.jurismagna.repositorio;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import mx.uv.fei.jurismagna.modelo.Usuario;
@@ -10,4 +12,7 @@ public interface UsuarioRepositorio extends JpaRepository<Usuario, Integer> {
     Usuario findByUsername(String username);
 
     boolean existsByUsername(String username);
+
+    // Usuarios de un rol (por ejemplo, los ADMIN para avisarles)
+    List<Usuario> findByRol(String rol);
 }

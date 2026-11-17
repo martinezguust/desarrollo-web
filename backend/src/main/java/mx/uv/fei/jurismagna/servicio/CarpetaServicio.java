@@ -44,20 +44,35 @@ public class CarpetaServicio {
         return carpetaRepositorio.save(carpeta);
     }
 
+    // El caso y la fecha de creación no cambian
+    public Carpeta editar(Integer id, Carpeta datos) {
+        Carpeta carpeta = buscarCarpeta(id);
+
+        carpeta.setNumero(datos.getNumero());
+        carpeta.setMateria(datos.getMateria());
+        carpeta.setProyecto(datos.getProyecto());
+        carpeta.setEstado(datos.getEstado());
+        carpeta.setLigaUrl(datos.getLigaUrl());
+
+        return carpetaRepositorio.save(carpeta);
+    }
+
+    // Al borrar la carpeta, la base de datos borra sus ligas (ON DELETE CASCADE)
+    public void eliminar(Integer id) {
+        carpetaRepositorio.delete(buscarCarpeta(id));
+    }
+
     public List<Liga> listarLigas(Integer carpetaId) {
         buscarCarpeta(carpetaId);
 
         return ligaRepositorio.findByCarpeta_IdOrderByIdAsc(carpetaId);
     }
 
+    // La URL la revisa @Valid
     public Liga crearLiga(Integer carpetaId, Liga liga) {
         Carpeta carpeta = buscarCarpeta(carpetaId);
 
-        if (liga.getUrl() == null || liga.getUrl().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Falta la URL de la liga");
-        }
-
-        // Sin nombre se usa la URL, como en el diseño original
+        // Sin nombre se usa la URL
         if (liga.getNombre() == null || liga.getNombre().isBlank()) {
             liga.setNombre(liga.getUrl());
         }
@@ -66,6 +81,13 @@ public class CarpetaServicio {
         liga.setCarpeta(carpeta);
 
         return ligaRepositorio.save(liga);
+    }
+
+    public void eliminarLiga(Integer id) {
+        Liga liga = ligaRepositorio.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe la liga " + id));
+
+        ligaRepositorio.delete(liga);
     }
 
     private Caso buscarCaso(Integer casoId) {

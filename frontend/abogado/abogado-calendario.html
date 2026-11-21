@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>Juris Magna — Calendario</title>
+    <link rel="stylesheet" href="../css/estilos.css"/>
+</head>
+
+<body>
+
+<div id="screen-abogado" class="screen active">
+    <aside class="sidebar glass">
+        <div class="sidebar-logo">
+            <span style="font-size:28px">⚖</span>
+            <div>
+                <span class="logo-name">JURIS <span class="gold">MAGNA</span></span>
+                <span class="logo-role" id="ab-sidebar-nombre">Abogado</span>
+            </div>
+        </div>
+        <div id="ab-profile-chip" onclick="abrirPerfilPropio()" style="display:flex;align-items:center;gap:10px;padding:10px 12px;margin:4px 0 8px;border-radius:12px;cursor:pointer;background:rgba(212,175,55,.06);border:1px solid var(--gb);transition:all .2s" onmouseover="this.style.background='rgba(212,175,55,.12)'" onmouseout="this.style.background='rgba(212,175,55,.06)'">
+            <div id="ab-chip-foto" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-dark));display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--dark);font-size:14px;overflow:hidden;flex-shrink:0"></div>
+            <div style="min-width:0">
+                <div id="ab-chip-nombre" style="font-size:13px;font-weight:600;color:var(--dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Abogado</div>
+                <div style="font-size:11px;color:var(--body)">Ver mi perfil</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a class="nav-item" href="abogado-dashboard.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3zm0 9h7v7H3zm9-9h7v7h-7zm0 9h7v7h-7z"/></svg></span>Mi Dashboard</a>
+            <a class="nav-item" href="abogado-clientes.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg></span>Clientes</a>
+            <a class="nav-item" href="abogado-casos.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M16 13H8m8 4H8m2-8H8"/></svg></span>Archivos y Casos</a>
+            <a class="nav-item" href="abogado-notas.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-5m-1.414-9.414a2 2 0 1 1 2.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></span>Notas</a>
+            <a class="nav-item" href="abogado-contactos.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm7.5 8.5l1.5 1.5 3-3"/></svg></span>Contactos</a>
+            <a class="nav-item" href="abogado-calendario.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18M3 9V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3M3 9v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9M8 2v4m8-4v4"/></svg></span>Calendario</a>
+        </nav>
+        <div class="sidebar-footer">
+            <button class="nav-item logout-btn" onclick="cerrarSesion()"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5-5-5m5 5H9"/></svg></span>Cerrar Sesión</button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div>
+                <h2>Calendario</h2>
+                <span class="topbar-date" id="topbar-fecha"></span>
+            </div>
+            <div class="topbar-actions">
+                <div class="notif-wrap">
+                    <button class="notif-btn" onclick="alternarNotificaciones()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        <span class="notif-badge" id="notif-count">0</span>
+                    </button>
+                    <div class="notif-panel glass" id="notif-panel">
+                        <div class="notif-header">
+                            <span>Notificaciones</span>
+                            <button onclick="marcarNotificacionesLeidas()">Marcar leídas</button>
+                        </div>
+                        <div id="notif-list"></div>
+                    </div>
+                </div>
+                <div class="user-chip glass" onclick="abrirPerfilPropio()" style="cursor:pointer">
+                    <div id="ab-topbar-foto" style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-dark));display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--dark);font-size:12px;overflow:hidden;flex-shrink:0"></div>
+                    <span id="ab-topbar-nombre">Abogado</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="page-body">
+            <div id="cal-abogado"></div>
+        </div>
+    </main>
+</div>
+
+<!-- Evento del calendario: agregar o editar -->
+<div class="overlay-bg" id="ov-evento">
+    <div class="overlay-card glass">
+        <div class="overlay-hdr">
+            <h3 id="ev-overlay-title">Agregar Evento</h3>
+            <button class="close-btn" onclick="cerrarModal('ov-evento')">✕</button>
+        </div>
+        <div class="overlay-body">
+            <div class="form-group"><label>Título</label><input class="input" id="ev-titulo"/></div>
+            <div class="form-group"><label>Hora</label><input class="input" id="ev-hora" placeholder="09:00"/></div>
+            <div class="form-group"><label>Lugar</label><input class="input" id="ev-lugar"/></div>
+            <div class="form-group"><label>Descripción</label><textarea class="input" id="ev-desc"></textarea></div>
+            <div class="form-group"><label>Color</label><div class="color-row" id="ev-colors"></div></div>
+            <input type="hidden" id="ev-fecha"/>
+            <input type="hidden" id="ev-edit-id"/>
+        </div>
+        <div class="overlay-ftr">
+            <button class="btn btn-danger btn-sm" id="ev-btn-delete" onclick="eliminarEvento()" style="display:none;margin-right:auto">Eliminar</button>
+            <button class="btn btn-outline" onclick="cerrarModal('ov-evento')">Cancelar</button>
+            <button class="btn btn-primary" onclick="guardarEvento()">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Perfil del abogado -->
+<div class="overlay-bg" id="ov-perfil-abogado">
+    <div class="overlay-card overlay-xl" style="padding:0;border-radius:16px;overflow:hidden;background:var(--bg);display:flex;flex-direction:column;max-height:85vh">
+        <div class="perfil-header-bar">
+            <h3>👤 Abogado</h3>
+            <button class="close-btn" onclick="cerrarModal('ov-perfil-abogado')">✕</button>
+        </div>
+        <div id="perfil-ab-body" style="flex:1;overflow-y:auto"></div>
+        <div class="perfil-footer" id="perfil-ab-footer" style="flex-shrink:0"></div>
+    </div>
+</div>
+
+<!-- Editar abogado -->
+<div class="overlay-bg" id="ov-editar-abogado">
+    <div class="overlay-card overlay-lg glass">
+        <div class="overlay-hdr">
+            <h3>Editar Abogado</h3>
+            <button class="close-btn" onclick="cerrarModal('ov-editar-abogado')">✕</button>
+        </div>
+        <div class="overlay-body">
+            <div class="section-title">Datos Personales y Académicos</div>
+            <div class="form-grid">
+                <div class="form-group"><label>Nombre</label><input class="input" id="eab-nombre"/></div>
+                <div class="form-group"><label>Edad</label><input class="input" type="number" id="eab-edad"/></div>
+                <div class="form-group"><label>Estudios</label><input class="input" id="eab-estudios"/></div>
+                <div class="form-group"><label>Experiencia</label><input class="input" id="eab-exp"/></div>
+                <div class="form-group"><label>Especialidad</label><input class="input" id="eab-esp"/></div>
+                <div class="form-group"><label>Cédula Profesional</label><input class="input" id="eab-cedula"/></div>
+                <div class="form-group form-full">
+                    <label>Fotografía (desde archivo o actual)</label>
+                    <div style="display:flex;align-items:center;gap:12px">
+                        <div id="eab-foto-preview" style="width:64px;height:64px;border-radius:50%;background:rgba(212,175,55,.1);border:2px dashed var(--gb);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0"></div>
+                        <div style="flex:1">
+                            <input type="file" id="eab-foto-file" accept="image/*" onchange="previsualizarFoto(this, 'eab-foto-preview')" style="display:none"/>
+                            <button type="button" class="btn btn-outline btn-sm" onclick="$('eab-foto-file').click()">Cambiar foto</button>
+                            <p style="font-size:11px;color:var(--body);margin-top:4px">JPG, PNG o WEBP</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="section-title" style="margin-top:14px">📬 Contacto</div>
+            <div class="form-grid">
+                <div class="form-group"><label>Correo</label><input class="input" id="eab-email"/></div>
+                <div class="form-group"><label>Teléfono</label><input class="input" id="eab-tel"/></div>
+            </div>
+            <input type="hidden" id="eab-id"/>
+        </div>
+        <div class="overlay-ftr">
+            <button class="btn btn-outline" onclick="cerrarModal('ov-editar-abogado')">Cancelar</button>
+            <button class="btn btn-primary" onclick="guardarEdicionAbogado()">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<script src="../js/compartidos/sesion.js"></script>
+<script src="../js/compartidos/utilidades.js"></script>
+<script src="../js/compartidos/api.js"></script>
+<script src="../js/compartidos/menu.js"></script>
+<script src="../js/compartidos/calendario.js"></script>
+<script src="../js/abogado/abogado-calendario.js"></script>
+
+</body>
+</html>

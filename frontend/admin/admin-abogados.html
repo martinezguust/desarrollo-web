@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>Juris Magna — Abogados</title>
+    <link rel="stylesheet" href="../css/estilos.css"/>
+</head>
+
+<body>
+
+<div id="screen-admin" class="screen active">
+    <aside class="sidebar glass">
+        <div class="sidebar-logo">
+            <span style="font-size:28px">⚖</span>
+            <div>
+                <span class="logo-name">JURIS <span class="gold">MAGNA</span></span>
+                <span class="logo-sub">Despacho de Élite</span>
+            </div>
+        </div>
+        <div class="sidebar-section">ADMINISTRACIÓN</div>
+        <nav class="sidebar-nav">
+            <a class="nav-item" href="admin-dashboard.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3zm0 9h7v7H3zm9-9h7v7h-7zm0 9h7v7h-7z"/></svg></span>Dashboard</a>
+            <a class="nav-item" href="admin-abogados.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg></span>Abogados</a>
+            <a class="nav-item" href="admin-finanzas.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></span>Adm. y Finanzas</a>
+            <a class="nav-item" href="admin-historico.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M16 13H8m8 4H8m2-8H8"/></svg></span>Archivo Histórico</a>
+            <a class="nav-item" href="admin-contactos.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm7.5 8.5l1.5 1.5 3-3"/></svg></span>Contactos</a>
+            <a class="nav-item" href="admin-calendario.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18M3 9V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3M3 9v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9M8 2v4m8-4v4"/></svg></span>Calendario</a>
+        </nav>
+        <div class="sidebar-footer">
+            <button class="nav-item logout-btn" onclick="cerrarSesion()"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5-5-5m5 5H9"/></svg></span>Cerrar Sesión</button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div>
+                <h2>Gestión de Abogados</h2>
+                <span style="font-size:11px;color:var(--body)" id="topbar-fecha"></span>
+            </div>
+            <div class="topbar-actions">
+                <div class="notif-wrap">
+                    <button class="notif-btn" onclick="alternarNotificaciones()">
+                        🔔
+                        <span class="notif-badge" id="notif-count">0</span>
+                    </button>
+                    <div class="notif-panel glass" id="notif-panel">
+                        <div class="notif-header">
+                            <span>Notificaciones</span>
+                            <button onclick="marcarNotificacionesLeidas()">Marcar leídas</button>
+                        </div>
+                        <div id="notif-list"></div>
+                    </div>
+                </div>
+                <div class="user-chip glass" onclick="abrirPerfilAdmin()" style="cursor:pointer">
+                    <div id="admin-topbar-foto" style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-dark));display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--dark);font-size:11px;overflow:hidden;flex-shrink:0">AD</div>
+                    <span>Administrador</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="page-body">
+            <div class="page-header">
+                <h3>Gestión de Abogados</h3>
+                <button class="btn btn-primary" onclick="abrirNuevoAbogado()">+ Nuevo Abogado</button>
+            </div>
+
+            <div class="table-card glass">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Abogado</th>
+                            <th>Especialidad</th>
+                            <th>Cédula</th>
+                            <th>Casos Act.</th>
+                            <th>Clientes</th>
+                            <th>Éxito</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-abogados"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Nuevo abogado -->
+<div class="overlay-bg" id="ov-nuevo-abogado">
+    <div class="overlay-card overlay-lg glass">
+        <div class="overlay-hdr">
+            <h3>Nuevo Abogado</h3>
+            <button class="close-btn" onclick="cerrarModal('ov-nuevo-abogado')">✕</button>
+        </div>
+        <div class="overlay-body">
+            <div class="section-title">Datos Personales y Académicos</div>
+            <div class="form-grid">
+                <div class="form-group"><label>Nombre completo</label><input class="input" id="nab-nombre" placeholder="Ej. Dr. Juan Ramírez"/></div>
+                <div class="form-group"><label>Edad</label><input class="input" type="number" id="nab-edad"/></div>
+                <div class="form-group"><label>Estudios</label><input class="input" id="nab-estudios" placeholder="Ej. Licenciado en Derecho"/></div>
+                <div class="form-group"><label>Experiencia</label><input class="input" id="nab-exp" placeholder="Ej. 5 años en litigio civil"/></div>
+                <div class="form-group"><label>Especialidad</label><input class="input" id="nab-esp" placeholder="Ej. Derecho Civil"/></div>
+                <div class="form-group"><label>Cédula Profesional</label><input class="input" id="nab-cedula" placeholder="Núm. de cédula"/></div>
+                <div class="form-group form-full">
+                    <label>Fotografía (desde archivo)</label>
+                    <div style="display:flex;align-items:center;gap:12px">
+                        <div id="nab-foto-preview" style="width:64px;height:64px;border-radius:50%;background:rgba(212,175,55,.1);border:2px dashed var(--gb);display:flex;align-items:center;justify-content:center;font-size:24px;overflow:hidden;flex-shrink:0">👤</div>
+                        <div style="flex:1">
+                            <input type="file" id="nab-foto-file" accept="image/*" onchange="previsualizarFoto(this, 'nab-foto-preview')" style="display:none"/>
+                            <button type="button" class="btn btn-outline btn-sm" onclick="$('nab-foto-file').click()">Seleccionar foto</button>
+                            <p style="font-size:11px;margin-top:4px">JPG, PNG, WEBP</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="section-title" style="margin-top:14px">Datos de Contacto</div>
+            <div class="form-grid">
+                <div class="form-group"><label>Correo electrónico</label><input class="input" id="nab-email"/></div>
+                <div class="form-group"><label>Número / Teléfono</label><input class="input" id="nab-tel"/></div>
+            </div>
+            <div class="section-title" style="margin-top:14px">Datos de Inicio de Sesión</div>
+            <div class="form-grid">
+                <div class="form-group"><label>Usuario</label><input class="input" id="nab-user"/></div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <div class="pw-wrap">
+                        <input class="input" type="password" id="nab-pass"/>
+                        <button type="button" class="pw-eye" onclick="alternarPassword('nab-pass')" tabindex="-1"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="overlay-ftr">
+            <button class="btn btn-outline" onclick="cerrarModal('ov-nuevo-abogado')">Cancelar</button>
+            <button class="btn btn-primary" onclick="guardarAbogado()">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Perfil del abogado -->
+<div class="overlay-bg" id="ov-perfil-abogado">
+    <div class="overlay-card overlay-xl" style="padding:0;border-radius:16px;overflow:hidden;background:var(--bg);display:flex;flex-direction:column;max-height:85vh">
+        <div class="perfil-header-bar">
+            <h3>👤 Abogado</h3>
+            <button class="close-btn" onclick="cerrarModal('ov-perfil-abogado')">✕</button>
+        </div>
+        <div id="perfil-ab-body" style="flex:1;overflow-y:auto"></div>
+        <div class="perfil-footer" id="perfil-ab-footer" style="flex-shrink:0"></div>
+    </div>
+</div>
+
+<!-- Editar abogado -->
+<div class="overlay-bg" id="ov-editar-abogado">
+    <div class="overlay-card overlay-lg glass">
+        <div class="overlay-hdr">
+            <h3>Editar Abogado</h3>
+            <button class="close-btn" onclick="cerrarModal('ov-editar-abogado')">✕</button>
+        </div>
+        <div class="overlay-body">
+            <div class="section-title">Datos Personales y Académicos</div>
+            <div class="form-grid">
+                <div class="form-group"><label>Nombre</label><input class="input" id="eab-nombre"/></div>
+                <div class="form-group"><label>Edad</label><input class="input" type="number" id="eab-edad"/></div>
+                <div class="form-group"><label>Estudios</label><input class="input" id="eab-estudios"/></div>
+                <div class="form-group"><label>Experiencia</label><input class="input" id="eab-exp"/></div>
+                <div class="form-group"><label>Especialidad</label><input class="input" id="eab-esp"/></div>
+                <div class="form-group"><label>Cédula Profesional</label><input class="input" id="eab-cedula"/></div>
+                <div class="form-group form-full">
+                    <label>Fotografía (desde archivo o actual)</label>
+                    <div style="display:flex;align-items:center;gap:12px">
+                        <div id="eab-foto-preview" style="width:64px;height:64px;border-radius:50%;background:rgba(212,175,55,.1);border:2px dashed var(--gb);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0"></div>
+                        <div style="flex:1">
+                            <input type="file" id="eab-foto-file" accept="image/*" onchange="previsualizarFoto(this, 'eab-foto-preview')" style="display:none"/>
+                            <button type="button" class="btn btn-outline btn-sm" onclick="$('eab-foto-file').click()">Cambiar foto</button>
+                            <p style="font-size:11px;color:var(--body);margin-top:4px">JPG, PNG o WEBP</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="section-title" style="margin-top:14px">📬 Contacto</div>
+            <div class="form-grid">
+                <div class="form-group"><label>Correo</label><input class="input" id="eab-email"/></div>
+                <div class="form-group"><label>Teléfono</label><input class="input" id="eab-tel"/></div>
+            </div>
+            <input type="hidden" id="eab-id"/>
+        </div>
+        <div class="overlay-ftr">
+            <button class="btn btn-outline" onclick="cerrarModal('ov-editar-abogado')">Cancelar</button>
+            <button class="btn btn-primary" onclick="guardarEdicionAbogado()">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmar eliminar abogado -->
+<div class="overlay-bg" id="ov-confirm-ab">
+    <div class="confirm-modal glass">
+        <h3>¿Eliminar abogado?</h3>
+        <p>¿Seguro que deseas eliminar a <b id="confirm-ab-nombre"></b>?</p>
+        <div class="confirm-btns">
+            <button class="btn btn-outline" onclick="cerrarModal('ov-confirm-ab')">No</button>
+            <button class="btn" style="background:var(--red);color:#fff;padding:10px 22px;border-radius:50px;font-weight:600" onclick="eliminarAbogado()">Sí, eliminar</button>
+        </div>
+    </div>
+</div>
+
+<script src="../js/compartidos/sesion.js"></script>
+<script src="../js/compartidos/utilidades.js"></script>
+<script src="../js/compartidos/api.js"></script>
+<script src="../js/compartidos/menu.js"></script>
+<script src="../js/admin/admin-abogados.js"></script>
+
+</body>
+</html>

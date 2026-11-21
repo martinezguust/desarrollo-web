@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>Juris Magna — Archivo Histórico</title>
+    <link rel="stylesheet" href="../css/estilos.css"/>
+</head>
+
+<body>
+
+<div id="screen-admin" class="screen active">
+    <aside class="sidebar glass">
+        <div class="sidebar-logo">
+            <span style="font-size:28px">⚖</span>
+            <div>
+                <span class="logo-name">JURIS <span class="gold">MAGNA</span></span>
+                <span class="logo-sub">Despacho de Élite</span>
+            </div>
+        </div>
+        <div class="sidebar-section">ADMINISTRACIÓN</div>
+        <nav class="sidebar-nav">
+            <a class="nav-item" href="admin-dashboard.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3zm0 9h7v7H3zm9-9h7v7h-7zm0 9h7v7h-7z"/></svg></span>Dashboard</a>
+            <a class="nav-item" href="admin-abogados.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg></span>Abogados</a>
+            <a class="nav-item" href="admin-finanzas.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></span>Adm. y Finanzas</a>
+            <a class="nav-item" href="admin-historico.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M16 13H8m8 4H8m2-8H8"/></svg></span>Archivo Histórico</a>
+            <a class="nav-item" href="admin-contactos.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm7.5 8.5l1.5 1.5 3-3"/></svg></span>Contactos</a>
+            <a class="nav-item" href="admin-calendario.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18M3 9V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3M3 9v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9M8 2v4m8-4v4"/></svg></span>Calendario</a>
+        </nav>
+        <div class="sidebar-footer">
+            <button class="nav-item logout-btn" onclick="cerrarSesion()"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5-5-5m5 5H9"/></svg></span>Cerrar Sesión</button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div>
+                <h2>Archivo Histórico</h2>
+                <span style="font-size:11px;color:var(--body)" id="topbar-fecha"></span>
+            </div>
+            <div class="topbar-actions">
+                <div class="notif-wrap">
+                    <button class="notif-btn" onclick="alternarNotificaciones()">
+                        🔔
+                        <span class="notif-badge" id="notif-count">0</span>
+                    </button>
+                    <div class="notif-panel glass" id="notif-panel">
+                        <div class="notif-header">
+                            <span>Notificaciones</span>
+                            <button onclick="marcarNotificacionesLeidas()">Marcar leídas</button>
+                        </div>
+                        <div id="notif-list"></div>
+                    </div>
+                </div>
+                <div class="user-chip glass" onclick="abrirPerfilAdmin()" style="cursor:pointer">
+                    <div id="admin-topbar-foto" style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-dark));display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--dark);font-size:11px;overflow:hidden;flex-shrink:0">AD</div>
+                    <span>Administrador</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="page-body">
+            <div class="page-header">
+                <h3>Archivo Histórico de Casos</h3>
+                <input class="input" style="max-width:220px" placeholder="🔍 Buscar..." oninput="buscarHistorico(this.value)"/>
+            </div>
+
+            <div class="hist-filter-row">
+                <button class="hist-chip active" onclick="filtrarHistorico('', this)">Todos</button>
+                <button class="hist-chip" onclick="filtrarHistorico('Ganado', this)">✅ Ganados</button>
+                <button class="hist-chip" onclick="filtrarHistorico('Perdido', this)">❌ Perdidos</button>
+                <button class="hist-chip" onclick="filtrarHistorico('Cancelado', this)">🚫 Cancelados</button>
+            </div>
+
+            <div class="table-card glass">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Expediente</th>
+                            <th>Cliente</th>
+                            <th>Abogado</th>
+                            <th>Materia</th>
+                            <th>Estado</th>
+                            <th>Fecha Fin</th>
+                            <th>Archivo Drive</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-historico"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="../js/compartidos/sesion.js"></script>
+<script src="../js/compartidos/utilidades.js"></script>
+<script src="../js/compartidos/api.js"></script>
+<script src="../js/compartidos/menu.js"></script>
+<script src="../js/admin/admin-historico.js"></script>
+
+</body>
+</html>

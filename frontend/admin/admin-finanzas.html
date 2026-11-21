@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>Juris Magna — Finanzas</title>
+    <link rel="stylesheet" href="../css/estilos.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+
+<body>
+
+<div id="screen-admin" class="screen active">
+    <aside class="sidebar glass">
+        <div class="sidebar-logo">
+            <span style="font-size:28px">⚖</span>
+            <div>
+                <span class="logo-name">JURIS <span class="gold">MAGNA</span></span>
+                <span class="logo-sub">Despacho de Élite</span>
+            </div>
+        </div>
+        <div class="sidebar-section">ADMINISTRACIÓN</div>
+        <nav class="sidebar-nav">
+            <a class="nav-item" href="admin-dashboard.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3zm0 9h7v7H3zm9-9h7v7h-7zm0 9h7v7h-7z"/></svg></span>Dashboard</a>
+            <a class="nav-item" href="admin-abogados.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg></span>Abogados</a>
+            <a class="nav-item" href="admin-finanzas.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></span>Adm. y Finanzas</a>
+            <a class="nav-item" href="admin-historico.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M16 13H8m8 4H8m2-8H8"/></svg></span>Archivo Histórico</a>
+            <a class="nav-item" href="admin-contactos.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm7.5 8.5l1.5 1.5 3-3"/></svg></span>Contactos</a>
+            <a class="nav-item" href="admin-calendario.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18M3 9V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3M3 9v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9M8 2v4m8-4v4"/></svg></span>Calendario</a>
+        </nav>
+        <div class="sidebar-footer">
+            <button class="nav-item logout-btn" onclick="cerrarSesion()"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5-5-5m5 5H9"/></svg></span>Cerrar Sesión</button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div>
+                <h2>Administración y Finanzas</h2>
+                <span style="font-size:11px;color:var(--body)" id="topbar-fecha"></span>
+            </div>
+            <div class="topbar-actions">
+                <div class="notif-wrap">
+                    <button class="notif-btn" onclick="alternarNotificaciones()">
+                        🔔
+                        <span class="notif-badge" id="notif-count">0</span>
+                    </button>
+                    <div class="notif-panel glass" id="notif-panel">
+                        <div class="notif-header">
+                            <span>Notificaciones</span>
+                            <button onclick="marcarNotificacionesLeidas()">Marcar leídas</button>
+                        </div>
+                        <div id="notif-list"></div>
+                    </div>
+                </div>
+                <div class="user-chip glass" onclick="abrirPerfilAdmin()" style="cursor:pointer">
+                    <div id="admin-topbar-foto" style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-dark));display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--dark);font-size:11px;overflow:hidden;flex-shrink:0">AD</div>
+                    <span>Administrador</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="page-body">
+            <div class="page-header">
+                <h3>Administración y Finanzas</h3>
+                <div style="display:flex;gap:10px;flex-wrap:wrap">
+                    <button class="btn btn-outline" onclick="abrirNuevoMovimiento()">+ Nuevo Movimiento</button>
+                    <button class="btn btn-primary" onclick="exportarPDF()">Exportar Reporte PDF</button>
+                </div>
+            </div>
+
+            <div class="fin-disponible-card">
+                <div>
+                    <h3>Fondos Disponibles — Neto Libre de Gastos</h3>
+                    <div class="amount" id="fin-fondos">$0</div>
+                    <div class="sub" id="fin-fondos-sub">Ingresos netos operativos</div>
+                </div>
+                <div style="text-align:right">
+                    <div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:4px">Rentabilidad</div>
+                    <div style="font-size:28px;font-weight:800;color:var(--gold)" id="fin-rentabilidad">0%</div>
+                    <div style="font-size:11px;color:rgba(255,255,255,.4)" id="fin-rentabilidad-tendencia"></div>
+                </div>
+            </div>
+
+            <div class="fin-resumen-cards">
+                <div class="fin-resumen-card ing">
+                    <div class="fin-resumen-label">Total Ingresos</div>
+                    <div class="fin-resumen-value" id="fin-total-ingresos">$0</div>
+                    <div class="fin-resumen-sub" id="fin-periodo">—</div>
+                </div>
+                <div class="fin-resumen-card egr">
+                    <div class="fin-resumen-label">Total Egresos</div>
+                    <div class="fin-resumen-value" id="fin-total-egresos">$0</div>
+                    <div class="fin-resumen-sub">Gastos operativos del periodo</div>
+                </div>
+                <div class="fin-resumen-card net">
+                    <div class="fin-resumen-label">Neto</div>
+                    <div class="fin-resumen-value" id="fin-neto">$0</div>
+                    <div class="fin-resumen-sub">Libre de gastos</div>
+                </div>
+            </div>
+
+            <div class="fin-charts-row">
+                <div class="chart-card glass">
+                    <div class="chart-title" id="fin-titulo-barras">Ingresos vs Egresos — Últimos 3 meses</div>
+                    <canvas id="finBar" style="height:220px"></canvas>
+                </div>
+                <div class="chart-card glass">
+                    <div class="chart-title">Distribución de Gastos</div>
+                    <div style="position:relative;width:200px;height:200px;margin:0 auto"><canvas id="finPie"></canvas></div>
+                </div>
+            </div>
+
+            <div class="fin-tables-row">
+                <div>
+                    <div class="fin-section-title">Registro de Egresos</div>
+                    <div class="table-card glass">
+                        <table class="fin-table">
+                            <thead>
+                                <tr><th>Concepto</th><th>Mes</th><th>Monto</th><th></th></tr>
+                            </thead>
+                            <tbody id="tabla-egresos"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div>
+                    <div class="fin-section-title">Registro de Ingresos</div>
+                    <div class="table-card glass">
+                        <table class="fin-table">
+                            <thead>
+                                <tr><th>Concepto</th><th>Mes</th><th>Monto</th><th></th></tr>
+                            </thead>
+                            <tbody id="tabla-ingresos"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Nuevo o editar movimiento -->
+<div class="overlay-bg" id="ov-movimiento">
+    <div class="overlay-card glass">
+        <div class="overlay-hdr">
+            <h3 id="mov-titulo">Nuevo Movimiento</h3>
+            <button class="close-btn" onclick="cerrarModal('ov-movimiento')">✕</button>
+        </div>
+        <div class="overlay-body">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Tipo</label>
+                    <select class="input" id="mov-tipo">
+                        <option value="INGRESO">Ingreso</option>
+                        <option value="EGRESO">Egreso</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Concepto</label>
+                    <select class="input" id="mov-concepto">
+                        <option>Honorarios</option>
+                        <option>Consultas y asesorías</option>
+                        <option>Nómina</option>
+                        <option>Renta</option>
+                        <option>Servicios</option>
+                        <option>Otros</option>
+                        <option>Retención fiscal</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Monto</label><input class="input" type="number" id="mov-monto"/></div>
+                <div class="form-group"><label>Fecha</label><input class="input" type="date" id="mov-fecha"/></div>
+            </div>
+            <input type="hidden" id="mov-id"/>
+        </div>
+        <div class="overlay-ftr">
+            <button class="btn btn-danger btn-sm" id="mov-btn-eliminar" onclick="eliminarMovimiento()" style="display:none;margin-right:auto">Eliminar</button>
+            <button class="btn btn-outline" onclick="cerrarModal('ov-movimiento')">Cancelar</button>
+            <button class="btn btn-primary" onclick="guardarMovimiento()">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<script src="../js/compartidos/sesion.js"></script>
+<script src="../js/compartidos/utilidades.js"></script>
+<script src="../js/compartidos/api.js"></script>
+<script src="../js/compartidos/menu.js"></script>
+<script src="../js/admin/admin-finanzas.js"></script>
+
+</body>
+</html>

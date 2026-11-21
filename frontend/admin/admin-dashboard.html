@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>Juris Magna — Panel Ejecutivo</title>
+    <link rel="stylesheet" href="../css/estilos.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+
+<div id="screen-admin" class="screen active">
+    <aside class="sidebar glass">
+        <div class="sidebar-logo">
+            <span style="font-size:28px">⚖</span>
+            <div>
+                <span class="logo-name">JURIS <span class="gold">MAGNA</span></span>
+                <span class="logo-sub">Despacho de Élite</span>
+            </div>
+        </div>
+        <div class="sidebar-section">ADMINISTRACIÓN</div>
+        <nav class="sidebar-nav">
+            <a class="nav-item" href="admin-dashboard.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3zm0 9h7v7H3zm9-9h7v7h-7zm0 9h7v7h-7z"/></svg></span>Dashboard</a>
+            <a class="nav-item" href="admin-abogados.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg></span>Abogados</a>
+            <a class="nav-item" href="admin-finanzas.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></span>Adm. y Finanzas</a>
+            <a class="nav-item" href="admin-historico.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M16 13H8m8 4H8m2-8H8"/></svg></span>Archivo Histórico</a>
+            <a class="nav-item" href="admin-contactos.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm7.5 8.5l1.5 1.5 3-3"/></svg></span>Contactos</a>
+            <a class="nav-item" href="admin-calendario.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18M3 9V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3M3 9v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9M8 2v4m8-4v4"/></svg></span>Calendario</a>
+        </nav>
+        <div class="sidebar-footer">
+            <button class="nav-item logout-btn" onclick="cerrarSesion()"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5-5-5m5 5H9"/></svg></span>Cerrar Sesión</button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div>
+                <h2>Panel Ejecutivo</h2>
+                <span style="font-size:11px;color:var(--body)" id="topbar-fecha"></span>
+            </div>
+            <div class="topbar-actions">
+                <div class="notif-wrap">
+                    <button class="notif-btn" onclick="alternarNotificaciones()">
+                        🔔
+                        <span class="notif-badge" id="notif-count">0</span>
+                    </button>
+                    <div class="notif-panel glass" id="notif-panel">
+                        <div class="notif-header">
+                            <span>Notificaciones</span>
+                            <button onclick="marcarNotificacionesLeidas()">Marcar leídas</button>
+                        </div>
+                        <div id="notif-list"></div>
+                    </div>
+                </div>
+                <div class="user-chip glass" onclick="abrirPerfilAdmin()" style="cursor:pointer">
+                    <div id="admin-topbar-foto" style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-dark));display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--dark);font-size:11px;overflow:hidden;flex-shrink:0">AD</div>
+                    <span>Administrador</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="page-body">
+            <!-- Encabezado ejecutivo -->
+            <div class="exec-header-row">
+                <div>
+                    <h2 style="font-size:24px;font-weight:800;margin-bottom:4px">Panel Ejecutivo</h2>
+                    <p style="font-size:13px;color:var(--body)">Juris Magna · Administración General · <span id="exec-mes"></span></p>
+                </div>
+                <div style="display:flex;gap:10px;align-items:center">
+                    <div class="exec-badge"><span class="edot"></span>Sistema operativo</div>
+                </div>
+            </div>
+
+            <!-- KPIs financieros -->
+            <div class="fin-kpi-row">
+                <div class="fin-kpi glass ingreso">
+                    <div class="fin-kpi-label">Capital Operativo</div>
+                    <div class="fin-kpi-value" id="kpi-capital">$0</div>
+                    <div class="fin-kpi-trend" id="kpi-capital-tendencia"></div>
+                </div>
+                <div class="fin-kpi glass egreso">
+                    <div class="fin-kpi-label">Rentabilidad Neta</div>
+                    <div class="fin-kpi-value" id="kpi-rentabilidad">0%</div>
+                    <div class="fin-kpi-trend" id="kpi-rentabilidad-tendencia"></div>
+                </div>
+                <div class="fin-kpi glass neto">
+                    <div class="fin-kpi-label" id="kpi-facturacion-titulo">Facturación</div>
+                    <div class="fin-kpi-value" id="kpi-facturacion">$0</div>
+                    <div class="fin-kpi-trend" id="kpi-facturacion-tendencia"></div>
+                </div>
+            </div>
+
+            <!-- Personal y casos -->
+            <div class="stats-secondary">
+                <div class="stat-box glass"><span class="stat-box-icon" style="font-size:18px;opacity:.5">⬡</span><span class="stat-box-num" id="s-personal">0</span><span class="stat-box-lbl">Total Personal</span></div>
+                <div class="stat-box glass"><span class="stat-box-icon" style="font-size:18px;opacity:.5">◎</span><span class="stat-box-num" id="s-abogados">0</span><span class="stat-box-lbl">Abogados</span></div>
+                <div class="stat-box glass blue"><span class="stat-box-icon" style="font-size:18px;opacity:.5">▤</span><span class="stat-box-num" id="s-activos">0</span><span class="stat-box-lbl">Casos Activos</span></div>
+                <div class="stat-box glass green"><span class="stat-box-icon" style="font-size:18px;opacity:.5">◉</span><span class="stat-box-num" id="s-ganados">0</span><span class="stat-box-lbl">Casos Ganados</span></div>
+                <div class="stat-box glass red"><span class="stat-box-icon" style="font-size:18px;opacity:.5">◌</span><span class="stat-box-num" id="s-perdidos">0</span><span class="stat-box-lbl">Casos Perdidos</span></div>
+            </div>
+
+            <!-- Dona de efectividad y resumen financiero -->
+            <div class="chart-row-big">
+                <div class="chart-card glass">
+                    <div class="chart-title">Efectividad Global</div>
+                    <div class="chart-sub">Casos ganados vs. perdidos · <span id="admin-total-casos">0</span> totales</div>
+                    <div class="donut-wrap">
+                        <canvas id="adminDonut"></canvas>
+                        <div class="donut-center"><span class="donut-pct" id="adminPct">0%</span><span class="donut-lbl">ÉXITO</span></div>
+                    </div>
+                    <div class="donut-labels" id="admin-donut-labels"></div>
+                </div>
+                <div class="chart-card glass">
+                    <div class="chart-title">Resumen Financiero</div>
+                    <div class="chart-sub">Indicadores clave del despacho</div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px">
+                        <div style="padding:14px;background:rgba(192,57,43,.06);border:1px solid rgba(192,57,43,.15);border-radius:12px">
+                            <div style="font-size:11px;color:var(--body);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Cobros Pendientes</div>
+                            <div style="font-size:22px;font-weight:800;color:var(--red)" id="kpi-pendientes">$0</div>
+                            <div style="font-size:11px;color:var(--red);margin-top:2px" id="kpi-pendientes-cambio"></div>
+                        </div>
+                        <div style="padding:14px;background:rgba(39,174,96,.06);border:1px solid rgba(39,174,96,.15);border-radius:12px">
+                            <div style="font-size:11px;color:var(--body);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px" id="kpi-cobrado-titulo">Cobrado</div>
+                            <div style="font-size:22px;font-weight:800;color:var(--green)" id="kpi-cobrado">$0</div>
+                            <div style="font-size:11px;color:var(--green);margin-top:2px" id="kpi-cobrado-pct"></div>
+                        </div>
+                        <div style="padding:14px;background:rgba(212,175,55,.06);border:1px solid rgba(212,175,55,.15);border-radius:12px">
+                            <div style="font-size:11px;color:var(--body);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Honorarios Totales</div>
+                            <div style="font-size:22px;font-weight:800;color:var(--gold-dark)" id="kpi-honorarios">$0</div>
+                            <div style="font-size:11px;color:var(--body);margin-top:2px">Todos los clientes</div>
+                        </div>
+                        <div style="padding:14px;background:rgba(41,128,185,.06);border:1px solid rgba(41,128,185,.15);border-radius:12px">
+                            <div style="font-size:11px;color:var(--body);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Clientes Activos</div>
+                            <div style="font-size:22px;font-weight:800;color:var(--blue)" id="kpi-clientes-activos">0</div>
+                            <div style="font-size:11px;color:var(--body);margin-top:2px">De <span id="kpi-total-clientes">0</span> totales</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="../js/compartidos/sesion.js"></script>
+<script src="../js/compartidos/utilidades.js"></script>
+<script src="../js/compartidos/api.js"></script>
+<script src="../js/compartidos/menu.js"></script>
+<script src="../js/admin/admin-dashboard.js"></script>
+
+</body>
+</html>

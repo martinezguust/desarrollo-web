@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>Juris Magna — Contactos</title>
+    <link rel="stylesheet" href="../css/estilos.css"/>
+</head>
+
+<body>
+
+<div id="screen-admin" class="screen active">
+    <aside class="sidebar glass">
+        <div class="sidebar-logo">
+            <span style="font-size:28px">⚖</span>
+            <div>
+                <span class="logo-name">JURIS <span class="gold">MAGNA</span></span>
+                <span class="logo-sub">Despacho de Élite</span>
+            </div>
+        </div>
+        <div class="sidebar-section">ADMINISTRACIÓN</div>
+        <nav class="sidebar-nav">
+            <a class="nav-item" href="admin-dashboard.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3zm0 9h7v7H3zm9-9h7v7h-7zm0 9h7v7h-7z"/></svg></span>Dashboard</a>
+            <a class="nav-item" href="admin-abogados.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg></span>Abogados</a>
+            <a class="nav-item" href="admin-finanzas.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></span>Adm. y Finanzas</a>
+            <a class="nav-item" href="admin-historico.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M16 13H8m8 4H8m2-8H8"/></svg></span>Archivo Histórico</a>
+            <a class="nav-item" href="admin-contactos.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm7.5 8.5l1.5 1.5 3-3"/></svg></span>Contactos</a>
+            <a class="nav-item" href="admin-calendario.html"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18M3 9V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3M3 9v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9M8 2v4m8-4v4"/></svg></span>Calendario</a>
+        </nav>
+        <div class="sidebar-footer">
+            <button class="nav-item logout-btn" onclick="cerrarSesion()"><span class="ni"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5-5-5m5 5H9"/></svg></span>Cerrar Sesión</button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div>
+                <h2>Contactos</h2>
+                <span style="font-size:11px;color:var(--body)" id="topbar-fecha"></span>
+            </div>
+            <div class="topbar-actions">
+                <div class="notif-wrap">
+                    <button class="notif-btn" onclick="alternarNotificaciones()">
+                        🔔
+                        <span class="notif-badge" id="notif-count">0</span>
+                    </button>
+                    <div class="notif-panel glass" id="notif-panel">
+                        <div class="notif-header">
+                            <span>Notificaciones</span>
+                            <button onclick="marcarNotificacionesLeidas()">Marcar leídas</button>
+                        </div>
+                        <div id="notif-list"></div>
+                    </div>
+                </div>
+                <div class="user-chip glass" onclick="abrirPerfilAdmin()" style="cursor:pointer">
+                    <div id="admin-topbar-foto" style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-dark));display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--dark);font-size:11px;overflow:hidden;flex-shrink:0">AD</div>
+                    <span>Administrador</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="page-body">
+            <div class="page-header">
+                <h3>Contactos</h3>
+                <button class="btn btn-primary" onclick="abrirNuevoContacto()">+ Agregar Contacto</button>
+            </div>
+
+            <div class="contactos-grid" id="admin-contactos-grid"></div>
+        </div>
+    </main>
+</div>
+
+<!-- Nuevo o editar contacto del admin -->
+<div class="overlay-bg" id="ov-nuevo-contacto-admin">
+    <div class="overlay-card glass">
+        <div class="overlay-hdr">
+            <h3 id="nco-titulo">Nuevo Contacto</h3>
+            <button class="close-btn" onclick="cerrarModal('ov-nuevo-contacto-admin')">✕</button>
+        </div>
+        <div class="overlay-body">
+            <div class="form-group"><label>Nombre</label><input class="input" id="nco-nombre"/></div>
+            <div class="form-group"><label>Teléfono</label><input class="input" id="nco-tel"/></div>
+            <div class="form-group"><label>Email</label><input class="input" id="nco-email"/></div>
+            <div class="form-group"><label>Notas</label><input class="input" id="nco-notas"/></div>
+            <input type="hidden" id="nco-id"/>
+        </div>
+        <div class="overlay-ftr">
+            <button class="btn btn-outline" onclick="cerrarModal('ov-nuevo-contacto-admin')">Cancelar</button>
+            <button class="btn btn-primary" onclick="guardarContacto()">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Mensajes (chat con texto, audio y archivos) -->
+<div class="overlay-bg" id="ov-mensajes">
+    <div class="overlay-card glass">
+        <div class="overlay-hdr">
+            <div>
+                <h3 id="msg-titulo">Mensajes</h3>
+                <small id="msg-subtitulo"></small>
+            </div>
+            <button class="close-btn" onclick="cerrarChat()">✕</button>
+        </div>
+        <div class="overlay-body">
+            <div class="msg-thread" id="msg-thread"></div>
+            <div class="msg-input-row" style="gap:6px">
+                <button class="btn btn-outline" id="msg-btn-audio" onclick="grabarAudioModal()" title="Audio" style="padding:8px 10px;border-radius:10px;flex-shrink:0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></button>
+                <button class="btn btn-outline" onclick="adjuntarArchivoModal()" title="Adjuntar" style="padding:8px 10px;border-radius:10px;flex-shrink:0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></button>
+                <div class="msg-pill" style="flex:1"><input id="msg-input" placeholder="Escribe un mensaje..." onkeydown="if (event.key === 'Enter') enviarMensajeModal()"/></div>
+                <button class="msg-send" onclick="enviarMensajeModal()">➤</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../js/compartidos/sesion.js"></script>
+<script src="../js/compartidos/utilidades.js"></script>
+<script src="../js/compartidos/api.js"></script>
+<script src="../js/compartidos/menu.js"></script>
+<script src="../js/compartidos/chat.js"></script>
+<script src="../js/admin/admin-contactos.js"></script>
+
+</body>
+</html>

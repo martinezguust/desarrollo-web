@@ -3288,3 +3288,28 @@ tr:hover td {
 a.nav-item {
     text-decoration: none;
 }
+
+/* Vista del cliente: en celulares reales (menos de 500 px) se quita el
+   marco de iPhone y la pantalla ocupa todo el espacio */
+@media (max-width: 499px) {
+    #screen-cliente {
+        padding: 0;
+    }
+
+    .iphone {
+        width: 100%;
+        height: 100vh;
+        border-radius: 0;
+        padding: 0;
+        box-shadow: none;
+    }
+
+    .iphone-notch,
+    .iphone-bar {
+        display: none;
+    }
+
+    .mobile-screen {
+        border-radius: 0;
+    }
+}

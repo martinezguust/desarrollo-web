@@ -75,7 +75,7 @@ INSERT IGNORE INTO carpeta (id, caso_id, numero, materia, proyecto, estado, liga
 
 -- =====================================================================
 -- Datos de Luisa: mensaje, notificacion
--- (en el diseño original los eventos y los contactos empiezan vacíos)
+-- (los eventos y los contactos empiezan vacíos: se agregan desde sus páginas)
 -- =====================================================================
 
 -- Conversaciones de ejemplo de Carlos Vega (cliente-1) y María Torres (cliente-2)

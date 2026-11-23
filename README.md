@@ -237,7 +237,7 @@ mensaje (agrupado por hilo)      contacto (propietario_tipo + propietario_id)
 **Reglas:**
 - Los audios, imágenes y archivos del chat se guardan en `backend/uploads/mensajes/`; la tabla solo guarda su URL y el nombre original.
 - `leido` lo marca quien recibe el mensaje al abrir la conversación; con eso se dibujan los puntos rojos de "no leído".
-- `color` es uno de los 6 del selector original: `#D4AF37`, `#27AE60`, `#2980B9`, `#C0392B`, `#8E44AD`, `#E67E22`.
+- `color` es uno de los 6 del selector de color: `#D4AF37`, `#27AE60`, `#2980B9`, `#C0392B`, `#8E44AD`, `#E67E22`.
 - Los días festivos no se guardan: los calcula `calendario.js` (1 de enero, primer lunes de febrero, tercer lunes de marzo, 1 de mayo, 16 de septiembre, tercer lunes de noviembre, 25 de diciembre y el 1 de octubre de cada cambio de Poder Ejecutivo federal).
 - En la página de contactos del abogado, el admin y sus clientes se muestran automáticamente (salen de `usuario` y `cliente`); `contacto` solo guarda los que se agregan a mano.
 
@@ -692,9 +692,9 @@ Respuesta (de los dos `POST` y de cada elemento de `GET /mensajes`):
 
 - `GET /mensajes` devuelve los mensajes en orden cronológico; `400` si falta `hilo`.
 - El remitente debe pertenecer al hilo: en `cliente-{id}` solo escriben `abogado` y `cliente`; en `admin-abogado-{id}`, `admin` y `abogado`. Si no, `400`.
-- Al enviar, el backend crea la notificación del abogado como en el diseño original: "Nuevo mensaje de {cliente}" o "Nuevo mensaje del Administrador".
+- Al enviar, el backend crea la notificación del abogado: "Nuevo mensaje de {cliente}" o "Nuevo mensaje del Administrador".
 - `PUT /mensajes/leidos` marca como leídos los mensajes del hilo que **no** envió `lector` (`abogado`, `cliente` o `admin`).
-- Archivos de hasta 10 MB. Tipos aceptados: audio `webm`, imágenes y documentos `pdf`, `doc(x)`, `xls(x)`, `ppt(x)` y `txt` (como el selector original). `400` si el archivo falta, pesa más o no es de un tipo permitido.
+- Archivos de hasta 10 MB. Tipos aceptados: audio `webm`, imágenes y documentos `pdf`, `doc(x)`, `xls(x)`, `ppt(x)` y `txt` (los mismos que permite el selector de archivos del chat). `400` si el archivo falta, pesa más o no es de un tipo permitido.
 - `404` si el mensaje no existe.
 
 #### Notificaciones
@@ -734,7 +734,7 @@ Respuesta (y cada elemento de `GET /notificaciones`, de la más reciente a la m�
 Respuesta: el mismo objeto con su `id`.
 
 - `GET /eventos` requiere `alcance`; con `anio` y `mes` (1–12) devuelve solo ese mes, ordenado por fecha y hora.
-- Si `titulo` llega vacío se guarda como "Evento" (como en el diseño original).
+- Si `titulo` llega vacío se guarda como "Evento".
 - `400` si falta la fecha o el alcance, si `hora` no tiene formato `HH:MM`, si `color` no es uno de los 6 o si `alcance` no es `admin` ni `abogado-{id}`.
 - `404` si el evento no existe.
 
@@ -793,6 +793,22 @@ Es el espacio de trabajo de cada abogado: solo ve sus propios clientes, casos y 
 - **JS compartido:** `utilidades.js` (`$()`, formato de moneda y fechas, abrir y cerrar modales, `mostrarExito` y `mostrarError`, colores y nombres de los estados) y `menu.js` (sección activa, fecha, campana de notificaciones, perfil del usuario y cerrar sesión). Los usan las páginas del admin y del abogado.
 - **Backend:** `ClienteControlador`, `CasoControlador`, `CarpetaControlador` (carpetas y ligas) y `NotaControlador`, cada uno con su servicio, más los repositorios y modelos Cliente, Caso, Carpeta, Liga y Nota.
 - **Reglas principales:** no se elimina un cliente que todavía tiene casos (409); un caso solo se puede asignar a un cliente del mismo abogado; al cerrar un caso (`Ganado`, `Perdido` o `Cancelado`) se llena su fecha de fin y pasa al archivo histórico; al crear un cliente, el admin recibe el aviso "{abogado} agregó a {cliente}".
+
+### Módulo de Luisa — Comunicación, agenda y vista del cliente
+
+Une a las tres personas del sistema: el chat entre abogado, cliente y admin, la agenda de cada quien, los contactos y la vista móvil del cliente.
+
+| Página | Qué hace |
+|---|---|
+| `cliente-caso.html` | Anillo SVG con el avance del caso (color según el estado), semáforo, botón "Escuchar comentarios" con síntesis de voz en español (`speechSynthesis`, `es-MX`), enlace a sus documentos en Drive y perfil de su abogado |
+| `cliente-chat.html` | Chat con su abogado: texto, notas de voz grabadas con MediaRecorder, imágenes y archivos |
+| `cliente-perfil.html` | Datos del cliente (correo, teléfono y usuario) y de su caso (expediente, materia, estado y abogado) |
+| `admin-calendario.html` / `abogado-calendario.html` | Calendario mensual con días festivos mexicanos y eventos de su propia agenda: nuevo, editar y eliminar desde el panel del día |
+| `admin-contactos.html` / `abogado-contactos.html` | El admin ve a los abogados (con chat) y sus contactos manuales; el abogado ve al admin, a sus clientes (con chat) y sus contactos manuales |
+
+- **JS compartido:** `chat.js` (hilos, envío de texto y archivos, grabación de audio, marcar como leído y puntos de "no leído") y `calendario.js` (dibuja el mes, calcula los festivos y maneja el modal de evento). Los usan las páginas de las tres vistas.
+- **Backend:** `MensajeControlador`, `NotificacionControlador`, `EventoControlador` y `ContactoControlador`, cada uno con su servicio, más los repositorios y modelos Mensaje, Notificacion, Evento y Contacto. Los archivos del chat se guardan en `backend/uploads/mensajes/`.
+- **Reglas principales:** en cada hilo solo escriben sus dos participantes; cada agenda (`admin` o `abogado-{id}`) solo ve sus eventos; al recibir un mensaje, el abogado recibe un aviso en la campana.
 
 ---
 
@@ -864,6 +880,35 @@ MySQL corre en **Windows** y el backend se conecta desde WSL con la IP de Window
 | `Access denied for user 'listi'` | Falta el usuario o el `GRANT` del paso 3, o la contraseña no coincide con `DB_PASS` |
 | `Host '...' is not allowed to connect` | El usuario se creó como `'listi'@'localhost'`; créalo como `'listi'@'%'` |
 
+### Correr el backend
+
+El backend es Spring Boot y escucha en el puerto **8081**. La conexión a MySQL se toma de tres variables de entorno; si no existen, se usan los valores por defecto de `application.properties`:
+
+| Variable | Qué es | Por defecto |
+|---|---|---|
+| `DB_HOST` | IP de Windows donde corre MySQL | `localhost` |
+| `DB_USER` | Usuario de MySQL | `listi` |
+| `DB_PASS` | Contraseña de ese usuario | `123` |
+
+En una terminal de WSL (cada vez que se abre una terminal nueva hay que volver a hacer los `export`):
+
+```bash
+export DB_HOST=$(ip route show | grep default | awk '{print $3}')
+export DB_USER=listi
+export DB_PASS=123
+
+cd ~/desarrollo-web/backend
+chmod +x mvnw
+./mvnw spring-boot:run
+```
+
+La primera vez Maven descarga las dependencias y tarda unos minutos. Está listo cuando aparece `Tomcat started on port 8081`. Para comprobarlo, abre **http://localhost:8081/**: es la página de estado (Thymeleaf) con "Backend funcionando", los conteos de la base de datos y la lista de rutas de la API.
+
+- Para detener el backend: `Ctrl + C` en esa terminal.
+- Los datos se quedan en MySQL al reiniciar; `data.sql` no duplica los de prueba.
+- Las fotos y archivos subidos se guardan en `backend/uploads/` (no se suben a GitHub).
+- Si sale `Port 8081 was already in use`, ya hay otro backend corriendo: deténlo antes de volver a arrancar.
+
 ### Configurar nginx
 
 nginx sirve los archivos de `frontend/` en `http://localhost/` y pasa todo lo que empieza con `/api/` al backend (puerto 8081), quitando el `/api`. También entrega los archivos subidos en `/uploads/`. Como todo sale del mismo origen, no hace falta configurar CORS.
@@ -929,6 +974,41 @@ nginx sirve los archivos de `frontend/` en `http://localhost/` y pasa todo lo qu
 | Cliente | `cvega` | `cliente123` | Carlos Vega |
 | Cliente | `mtorres` | `cliente123` | María Torres |
 | Cliente | `rsilva` | `cliente123` | Roberto Silva |
+
+### Probar la API con CURL
+
+`curl/pruebas.sh` prueba todos los endpoints (GET, POST, PUT y DELETE), con casos de éxito y de error, y revisa el código HTTP de cada respuesta. Lo que crea lo borra al terminar, así que se puede correr las veces que se quiera. Con el backend corriendo, en otra terminal:
+
+```bash
+cd ~/desarrollo-web
+bash curl/pruebas.sh
+```
+
+Cada prueba muestra la respuesta y `OK (HTTP ...)` o `FALLA`. Al final aparece el resumen:
+
+```
+Pruebas revisadas: 190    Fallas: 0
+```
+
+El script llama directo a Spring (`http://localhost:8081`). Para probar una ruta a través de nginx se agrega `/api`, por ejemplo:
+
+```bash
+curl http://localhost/api/casos/historico
+curl -X POST http://localhost/api/sesiones -H "Content-Type: application/json" -d '{"username": "admin", "password": "admin123", "rol": "ADMIN"}'
+```
+
+### Pruebas unitarias
+
+Las pruebas unitarias (JUnit 5) van en `backend/src/test/java/mx/uv/fei/jurismagna/`. Se corren con:
+
+```bash
+cd ~/desarrollo-web/backend
+./mvnw test
+```
+
+- **No necesitan MySQL ni el backend encendido:** `backend/src/test/resources/application.properties` usa una base de datos H2 en memoria que se crea al empezar y se borra al terminar, así que no tocan los datos de `jurismagna`.
+- `data.sql` no se carga en las pruebas: cada prueba prepara sus propios datos.
+- Al terminar, Maven muestra `Tests run: N, Failures: 0, Errors: 0` y `BUILD SUCCESS`. El detalle de cada prueba queda en `backend/target/surefire-reports/`.
 
 ---
 

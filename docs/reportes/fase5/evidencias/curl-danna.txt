@@ -1,0 +1,257 @@
+=== GET /clientes  listar clientes (esperado 200) ===
+[{"abogadoId":1,"abogadoNombre":"Dr. Juan Ramírez","avance":65,"comentario":"Hola Carlos, tu caso avanza bien. La audiencia quedó fijada para el 28 de mayo a las 10am en el Juzgado 5. Necesito que revises y firmes los documentos a la brevedad.","descripcion":"Disputa de propiedad inmueble","driveUrl":"","edad":34,"email":"carlos@mail.com","estado":"Activo","estudios":"Ingeniería","honorarios":45000.00,"id":1,"ine":"VECC840312","nombre":"Carlos Vega","telefono":"55 1111 2222","username":"cvega","usuarioId":4},{"abogadoId":1,"abogadoNombre":"Dr. Juan Ramírez","avance":30,"comentario":"","descrip ...
+OK (HTTP 200)
+
+=== GET /clientes?abogadoId=1  clientes del Dr. Juan Ramírez (esperado 200) ===
+[{"abogadoId":1,"abogadoNombre":"Dr. Juan Ramírez","avance":65,"comentario":"Hola Carlos, tu caso avanza bien. La audiencia quedó fijada para el 28 de mayo a las 10am en el Juzgado 5. Necesito que revises y firmes los documentos a la brevedad.","descripcion":"Disputa de propiedad inmueble","driveUrl":"","edad":34,"email":"carlos@mail.com","estado":"Activo","estudios":"Ingeniería","honorarios":45000.00,"id":1,"ine":"VECC840312","nombre":"Carlos Vega","telefono":"55 1111 2222","username":"cvega","usuarioId":4},{"abogadoId":1,"abogadoNombre":"Dr. Juan Ramírez","avance":30,"comentario":"","descrip ...
+OK (HTTP 200)
+
+=== GET /clientes?q=vega  buscar por nombre (esperado 200) ===
+[{"abogadoId":1,"abogadoNombre":"Dr. Juan Ramírez","avance":65,"comentario":"Hola Carlos, tu caso avanza bien. La audiencia quedó fijada para el 28 de mayo a las 10am en el Juzgado 5. Necesito que revises y firmes los documentos a la brevedad.","descripcion":"Disputa de propiedad inmueble","driveUrl":"","edad":34,"email":"carlos@mail.com","estado":"Activo","estudios":"Ingeniería","honorarios":45000.00,"id":1,"ine":"VECC840312","nombre":"Carlos Vega","telefono":"55 1111 2222","username":"cvega","usuarioId":4}]
+OK (HTTP 200)
+
+=== GET /clientes?abogadoId=abc  filtro con tipo incorrecto (esperado 400) ===
+{"error":"El valor de abogadoId no es válido"}
+OK (HTTP 400)
+
+=== GET /clientes/1  detalle de un cliente (esperado 200) ===
+{"abogadoId":1,"abogadoNombre":"Dr. Juan Ramírez","avance":65,"comentario":"Hola Carlos, tu caso avanza bien. La audiencia quedó fijada para el 28 de mayo a las 10am en el Juzgado 5. Necesito que revises y firmes los documentos a la brevedad.","descripcion":"Disputa de propiedad inmueble","driveUrl":"","edad":34,"email":"carlos@mail.com","estado":"Activo","estudios":"Ingeniería","honorarios":45000.00,"id":1,"ine":"VECC840312","nombre":"Carlos Vega","telefono":"55 1111 2222","username":"cvega","usuarioId":4}
+OK (HTTP 200)
+
+=== GET /clientes/999  cliente que no existe (esperado 404) ===
+{"error":"No existe el cliente 999"}
+OK (HTTP 404)
+
+=== POST /clientes  crear cliente y su usuario (esperado 200) ===
+{"abogadoId":1,"abogadoNombre":"Dr. Juan Ramírez","avance":10,"comentario":"Hola Laura, ya estamos revisando tu contrato.","descripcion":"Revisión de contrato de compraventa","driveUrl":"","edad":29,"email":"laura@mail.com","estado":"Activo","estudios":"Arquitectura","honorarios":20000,"id":15,"ine":"PRUL970101","nombre":"Laura Prueba","telefono":"228 765 4321","username":"lprueba","usuarioId":32}
+OK (HTTP 200)
+
+=== GET /notificaciones?usuarioId=1  el admin recibe el aviso del cliente nuevo (esperado 200) ===
+[{"fechaHora":"2026-11-22T20:49:58.475948","id":82,"leida":false,"mensaje":"Dr. Juan Ramírez agregó a Laura Prueba","usuarioId":1},{"fechaHora":"2026-11-10T09:05:00","id":2,"leida":true,"mensaje":"Dr. Juan Ramírez agregó a María Torres","usuarioId":1},{"fechaHora":"2026-11-10T09:00:00","id":1,"leida":true,"mensaje":"Dr. Juan Ramírez agregó a Carlos Vega","usuarioId":1}]
+OK (HTTP 200)
+Aviso encontrado: Dr. Juan Ramírez agregó a Laura Prueba
+
+=== POST /sesiones  login del cliente nuevo (nombre real) (esperado 200) ===
+{"usuarioId":32,"rol":"CLIENTE","nombre":"Laura Prueba","perfilId":15}
+OK (HTTP 200)
+
+=== POST /clientes  usuario repetido (esperado 409) ===
+{"error":"El usuario cvega ya existe"}
+OK (HTTP 409)
+
+=== POST /clientes  avance fuera de rango (@Valid) (esperado 400) ===
+{"error":"El avance debe estar entre 0 y 100"}
+OK (HTTP 400)
+
+=== POST /clientes  sin nombre (@Valid) (esperado 400) ===
+{"error":"Falta el nombre"}
+OK (HTTP 400)
+
+=== POST /clientes  abogado que no existe (esperado 404) ===
+{"error":"No existe el abogado 999"}
+OK (HTTP 404)
+
+=== PUT /clientes/15  editar avance y comentario (sin cambiar contraseña) (esperado 200) ===
+{"abogadoId":1,"abogadoNombre":"Dr. Juan Ramírez","avance":40,"comentario":"Laura, ya revisamos el contrato; falta tu firma.","descripcion":"Revisión de contrato de compraventa","driveUrl":"https://drive.google.com/laura","edad":29,"email":"laura@mail.com","estado":"Activo","estudios":"Arquitectura","honorarios":22000,"id":15,"ine":"PRUL970101","nombre":"Laura Prueba","telefono":"228 765 4321","username":"lprueba","usuarioId":32}
+OK (HTTP 200)
+
+=== POST /sesiones  la contraseña no cambió (esperado 200) ===
+{"usuarioId":32,"rol":"CLIENTE","nombre":"Laura Prueba","perfilId":15}
+OK (HTTP 200)
+
+=== PUT /clientes/15  honorarios negativos (@Valid) (esperado 400) ===
+{"error":"Los honorarios no pueden ser negativos"}
+OK (HTTP 400)
+
+=== PUT /clientes/15  usuario que ya usa otro cliente (esperado 409) ===
+{"error":"El usuario cvega ya existe"}
+OK (HTTP 409)
+
+=== PUT /clientes/999  cliente que no existe (esperado 404) ===
+{"error":"No existe el cliente 999"}
+OK (HTTP 404)
+
+=== GET /casos  listar casos (esperado 200) ===
+[{"abogadoId":1,"abogadoNombre":"Dr. Juan Ramírez","clienteId":1,"clienteNombre":"Carlos Vega","driveUrl":"","estado":"Activo","fechaFin":null,"fechaInicio":"2025-03-15","id":1,"materia":"Civil","numeroExpediente":"EXP-0001"},{"abogadoId":1,"abogadoNombre":"Dr. Juan Ramírez","clienteId":2,"clienteNombre":"María Torres","driveUrl":"","estado":"EnProceso","fechaFin":null,"fechaInicio":"2025-04-15","id":2,"materia":"Familiar","numeroExpediente":"EXP-0002"},{"abogadoId":1,"abogadoNombre":"Dr. Juan Ramírez","clienteId":1,"clienteNombre":"Carlos Vega","driveUrl":"https://drive.google.com/caso3","est ...
+OK (HTTP 200)
+
+=== GET /casos?abogadoId=2&materia=Penal  filtrar por abogado y materia (esperado 200) ===
+[{"abogadoId":2,"abogadoNombre":"Dra. Sofía Mendoza","clienteId":3,"clienteNombre":"Roberto Silva","driveUrl":"","estado":"Activo","fechaFin":null,"fechaInicio":"2025-05-01","id":4,"materia":"Penal","numeroExpediente":"EXP-0004"},{"abogadoId":2,"abogadoNombre":"Dra. Sofía Mendoza","clienteId":3,"clienteNombre":"Roberto Silva","driveUrl":"https://drive.google.com/caso5","estado":"Perdido","fechaFin":"2025-04-20","fechaInicio":"2024-11-15","id":5,"materia":"Penal","numeroExpediente":"EXP-0005"}]
+OK (HTTP 200)
+
+=== GET /casos?estado=Activo&q=vega  filtrar por estado y buscar (esperado 200) ===
+[{"abogadoId":1,"abogadoNombre":"Dr. Juan Ramírez","clienteId":1,"clienteNombre":"Carlos Vega","driveUrl":"","estado":"Activo","fechaFin":null,"fechaInicio":"2025-03-15","id":1,"materia":"Civil","numeroExpediente":"EXP-0001"}]
+OK (HTTP 200)
+
+=== GET /casos/3  detalle de un caso (esperado 200) ===
+{"abogadoId":1,"abogadoNombre":"Dr. Juan Ramírez","clienteId":1,"clienteNombre":"Carlos Vega","driveUrl":"https://drive.google.com/caso3","estado":"Ganado","fechaFin":"2025-05-10","fechaInicio":"2025-01-15","id":3,"materia":"Mercantil","numeroExpediente":"EXP-0003"}
+OK (HTTP 200)
+
+=== GET /casos/999  caso que no existe (esperado 404) ===
+{"error":"No existe el caso 999"}
+OK (HTTP 404)
+
+=== POST /casos  crear caso; genera el siguiente expediente (esperado 200) ===
+{"abogadoId":1,"abogadoNombre":"Dr. Juan Ramírez","clienteId":15,"clienteNombre":"Laura Prueba","driveUrl":"","estado":"Activo","fechaFin":null,"fechaInicio":"2026-11-22","id":17,"materia":"Inmobiliario","numeroExpediente":"EXP-0006"}
+OK (HTTP 200)
+
+=== POST /casos  materia no válida (esperado 400) ===
+{"error":"La materia Espacial no es válida"}
+OK (HTTP 400)
+
+=== POST /casos  sin materia (@Valid) (esperado 400) ===
+{"error":"Falta la materia"}
+OK (HTTP 400)
+
+=== POST /casos  el cliente no es de ese abogado (esperado 400) ===
+{"error":"El cliente no pertenece a ese abogado"}
+OK (HTTP 400)
+
+=== POST /casos  estado no válido (esperado 400) ===
+{"error":"El estado Pausado no es válido"}
+OK (HTTP 400)
+
+=== PUT /casos/17  cerrar el caso como Ganado (llena la fecha de fin) (esperado 200) ===
+{"abogadoId":1,"abogadoNombre":"Dr. Juan Ramírez","clienteId":15,"clienteNombre":"Laura Prueba","driveUrl":"https://drive.google.com/laura-caso","estado":"Ganado","fechaFin":"2026-11-22","fechaInicio":"2026-11-22","id":17,"materia":"Inmobiliario","numeroExpediente":"EXP-0006"}
+OK (HTTP 200)
+
+=== PUT /casos/999  caso que no existe (esperado 404) ===
+{"error":"No existe el caso 999"}
+OK (HTTP 404)
+
+=== GET /casos/historico  casos cerrados (esperado 200) ===
+[{"abogadoId":1,"abogadoNombre":"Dr. Juan Ramírez","clienteId":15,"clienteNombre":"Laura Prueba","driveUrl":"https://drive.google.com/laura-caso","estado":"Ganado","fechaFin":"2026-11-22","fechaInicio":"2026-11-22","id":17,"materia":"Inmobiliario","numeroExpediente":"EXP-0006"},{"abogadoId":1,"abogadoNombre":"Dr. Juan Ramírez","clienteId":1,"clienteNombre":"Carlos Vega","driveUrl":"https://drive.google.com/caso3","estado":"Ganado","fechaFin":"2025-05-10","fechaInicio":"2025-01-15","id":3,"materia":"Mercantil","numeroExpediente":"EXP-0003"},{"abogadoId":2,"abogadoNombre":"Dra. Sofía Mendoza","c ...
+OK (HTTP 200)
+
+=== GET /casos/historico?estado=Ganado&q=laura  ganados de Laura (esperado 200) ===
+[{"abogadoId":1,"abogadoNombre":"Dr. Juan Ramírez","clienteId":15,"clienteNombre":"Laura Prueba","driveUrl":"https://drive.google.com/laura-caso","estado":"Ganado","fechaFin":"2026-11-22","fechaInicio":"2026-11-22","id":17,"materia":"Inmobiliario","numeroExpediente":"EXP-0006"}]
+OK (HTTP 200)
+
+=== GET /casos/historico?estado=Activo  estado que no es cerrado (esperado 400) ===
+{"error":"En el histórico el estado debe ser Ganado, Perdido o Cancelado"}
+OK (HTTP 400)
+
+=== GET /casos/1/carpetas  carpetas del caso (esperado 200) ===
+[{"casoId":1,"estado":"Activo","fecha":"2025-03-16","id":1,"ligaUrl":"https://drive.google.com","materia":"Civil","numero":"001","proyecto":"Disputa Inmueble"}]
+OK (HTTP 200)
+
+=== GET /casos/999/carpetas  caso que no existe (esperado 404) ===
+{"error":"No existe el caso 999"}
+OK (HTTP 404)
+
+=== POST /casos/17/carpetas  crear carpeta (esperado 200) ===
+{"casoId":17,"estado":"Activo","fecha":"2026-11-22","id":21,"ligaUrl":"https://drive.google.com/compraventa","materia":"Inmobiliario","numero":"001","proyecto":"Compraventa"}
+OK (HTTP 200)
+
+=== PUT /carpetas/21  editar carpeta (esperado 200) ===
+{"casoId":17,"estado":"Cerrado","fecha":"2026-11-22","id":21,"ligaUrl":"https://drive.google.com/compraventa","materia":"Inmobiliario","numero":"001","proyecto":"Compraventa casa"}
+OK (HTTP 200)
+
+=== PUT /carpetas/999  carpeta que no existe (esperado 404) ===
+{"error":"No existe la carpeta 999"}
+OK (HTTP 404)
+
+=== POST /carpetas/21/ligas  liga sin nombre (usa la URL) (esperado 200) ===
+{"carpetaId":21,"id":20,"nombre":"https://drive.google.com/escritura","url":"https://drive.google.com/escritura"}
+OK (HTTP 200)
+
+=== POST /carpetas/21/ligas  liga con nombre (esperado 200) ===
+{"carpetaId":21,"id":21,"nombre":"Avalúo","url":"https://drive.google.com/avaluo"}
+OK (HTTP 200)
+
+=== POST /carpetas/21/ligas  liga sin URL (@Valid) (esperado 400) ===
+{"error":"Falta la URL de la liga"}
+OK (HTTP 400)
+
+=== GET /carpetas/21/ligas  ligas de la carpeta (esperado 200) ===
+[{"carpetaId":21,"id":20,"nombre":"https://drive.google.com/escritura","url":"https://drive.google.com/escritura"},{"carpetaId":21,"id":21,"nombre":"Avalúo","url":"https://drive.google.com/avaluo"}]
+OK (HTTP 200)
+
+=== DELETE /ligas/20  eliminar liga (esperado 200) ===
+{"mensaje":"Liga eliminada"}
+OK (HTTP 200)
+
+=== DELETE /ligas/20  ya no existe (esperado 404) ===
+{"error":"No existe la liga 20"}
+OK (HTTP 404)
+
+=== DELETE /carpetas/21  eliminar carpeta (y su liga) (esperado 200) ===
+{"mensaje":"Carpeta eliminada"}
+OK (HTTP 200)
+
+=== GET /carpetas/21/ligas  la carpeta ya no existe (esperado 404) ===
+{"error":"No existe la carpeta 21"}
+OK (HTTP 404)
+
+=== DELETE /clientes/15  cliente con casos (esperado 409) ===
+{"error":"No se puede eliminar: el cliente todavía tiene casos"}
+OK (HTTP 409)
+
+=== POST /casos/17/carpetas  otra carpeta para probar el borrado en cascada (esperado 200) ===
+{"casoId":17,"estado":null,"fecha":"2026-11-22","id":22,"ligaUrl":null,"materia":null,"numero":"002","proyecto":"Escrituras"}
+OK (HTTP 200)
+
+=== DELETE /casos/17  eliminar caso (y sus carpetas) (esperado 200) ===
+{"mensaje":"Caso eliminado"}
+OK (HTTP 200)
+
+=== GET /casos/17/carpetas  el caso ya no existe (esperado 404) ===
+{"error":"No existe el caso 17"}
+OK (HTTP 404)
+
+=== DELETE /clientes/15  eliminar cliente sin casos (y su usuario) (esperado 200) ===
+{"mensaje":"Cliente eliminado"}
+OK (HTTP 200)
+
+=== DELETE /clientes/15  ya no existe (esperado 404) ===
+{"error":"No existe el cliente 15"}
+OK (HTTP 404)
+
+=== DELETE /notificaciones/82  borrar el aviso del cliente de prueba (esperado 200) ===
+{"mensaje":"Notificación eliminada"}
+OK (HTTP 200)
+
+=== POST /sesiones  el usuario del cliente eliminado ya no entra (esperado 401) ===
+{"error":"Usuario, contraseña o rol incorrectos"}
+OK (HTTP 401)
+
+=== POST /notas  crear nota (esperado 200) ===
+{"abogadoId":1,"completada":false,"contenido":"Revisar contrato de arrendamiento","fecha":"2026-11-22","id":12,"titulo":"Preparar audiencia"}
+OK (HTTP 200)
+
+=== POST /notas  sin título (@Valid) (esperado 400) ===
+{"error":"Falta el título"}
+OK (HTTP 400)
+
+=== POST /notas  abogado que no existe (esperado 404) ===
+{"error":"No existe el abogado 999"}
+OK (HTTP 404)
+
+=== GET /notas?abogadoId=1  notas del abogado (esperado 200) ===
+[{"abogadoId":1,"completada":false,"contenido":"Revisar contrato de arrendamiento","fecha":"2026-11-22","id":12,"titulo":"Preparar audiencia"}]
+OK (HTTP 200)
+
+=== GET /notas  sin abogadoId (esperado 400) ===
+{"error":"Falta el abogadoId"}
+OK (HTTP 400)
+
+=== PUT /notas/12  marcar como completada (esperado 200) ===
+{"abogadoId":1,"completada":true,"contenido":"Revisar contrato de arrendamiento","fecha":"2026-11-22","id":12,"titulo":"Preparar audiencia"}
+OK (HTTP 200)
+
+=== PUT /notas/12  sin título (@Valid) (esperado 400) ===
+{"error":"Falta el título"}
+OK (HTTP 400)
+
+=== PUT /notas/999  nota que no existe (esperado 404) ===
+{"error":"No existe la nota 999"}
+OK (HTTP 404)
+
+=== DELETE /notas/12  eliminar nota (esperado 200) ===
+{"mensaje":"Nota eliminada"}
+OK (HTTP 200)
+
+=== DELETE /notas/12  ya no existe (esperado 404) ===
+{"error":"No existe la nota 12"}
+OK (HTTP 404)
+

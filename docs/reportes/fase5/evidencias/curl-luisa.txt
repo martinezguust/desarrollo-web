@@ -1,0 +1,287 @@
+=== GET /mensajes?hilo=cliente-1  conversación de Carlos Vega (esperado 200) ===
+[{"archivoUrl":null,"fechaHora":"2026-11-10T09:00:00","hilo":"cliente-1","id":1,"leido":true,"nombreArchivo":null,"remitente":"cliente","texto":"Buenos días, ¿hay novedades de mi caso?","tipo":"texto"},{"archivoUrl":null,"fechaHora":"2026-11-10T09:05:00","hilo":"cliente-1","id":2,"leido":true,"nombreArchivo":null,"remitente":"abogado","texto":"Hola Carlos, la audiencia está fijada para el 28 de mayo a las 10am.","tipo":"texto"},{"archivoUrl":null,"fechaHora":"2026-11-10T09:08:00","hilo":"cliente-1","id":3,"leido":true,"nombreArchivo":null,"remitente":"cliente","texto":"Entendido, ahí estaré. ¿ ...
+OK (HTTP 200)
+
+=== GET /mensajes  sin hilo (esperado 400) ===
+{"error":"Falta el hilo"}
+OK (HTTP 400)
+
+=== POST /mensajes  el cliente escribe (avisa a su abogado) (esperado 200) ===
+{"archivoUrl":null,"fechaHora":"2026-11-22T20:50:01.012350524","hilo":"cliente-1","id":81,"leido":false,"nombreArchivo":null,"remitente":"cliente","texto":"Ya firmé los documentos.","tipo":"texto"}
+OK (HTTP 200)
+
+=== POST /mensajes  el admin escribe a un abogado (esperado 200) ===
+{"archivoUrl":null,"fechaHora":"2026-11-22T20:50:01.05444029","hilo":"admin-abogado-1","id":82,"leido":false,"nombreArchivo":null,"remitente":"admin","texto":"Juan, revisa el expediente EXP-0001 por favor.","tipo":"texto"}
+OK (HTTP 200)
+
+=== POST /mensajes  remitente que no pertenece al hilo (esperado 400) ===
+{"error":"En cliente-1 solo escriben abogado y cliente"}
+OK (HTTP 400)
+
+=== POST /mensajes  hilo con formato incorrecto (esperado 400) ===
+{"error":"El hilo debe ser cliente-{id} o admin-abogado-{id}"}
+OK (HTTP 400)
+
+=== POST /mensajes  sin texto (esperado 400) ===
+{"error":"Faltan el hilo, el remitente o el texto"}
+OK (HTTP 400)
+
+=== POST /mensajes  cliente que no existe (esperado 404) ===
+{"error":"No existe el cliente 999"}
+OK (HTTP 404)
+
+=== POST /mensajes/archivos  nota de voz (audio webm) (esperado 200) ===
+{"archivoUrl":"/uploads/mensajes/83-audio.webm","fechaHora":"2026-11-22T20:50:01.197365885","hilo":"cliente-1","id":83,"leido":false,"nombreArchivo":"audio.webm","remitente":"cliente","texto":null,"tipo":"audio"}
+OK (HTTP 200)
+
+=== GET /uploads/mensajes/83-audio.webm  el audio se puede descargar (esperado 200) ===
+
+OK (HTTP 200)
+
+=== POST /mensajes/archivos  imagen del abogado (esperado 200) ===
+{"archivoUrl":"/uploads/mensajes/84-foto.png","fechaHora":"2026-11-22T20:50:01.27206714","hilo":"cliente-1","id":84,"leido":false,"nombreArchivo":"foto.png","remitente":"abogado","texto":null,"tipo":"img"}
+OK (HTTP 200)
+
+=== POST /mensajes/archivos  documento PDF (esperado 200) ===
+{"archivoUrl":"/uploads/mensajes/85-documento.pdf","fechaHora":"2026-11-22T20:50:01.353463169","hilo":"admin-abogado-1","id":85,"leido":false,"nombreArchivo":"documento.pdf","remitente":"admin","texto":null,"tipo":"file"}
+OK (HTTP 200)
+
+=== POST /mensajes/archivos  un .txt enviado como imagen (esperado 400) ===
+{"error":"Tipo de archivo no permitido; se aceptan: jpg, jpeg, png, gif, webp"}
+OK (HTTP 400)
+
+=== POST /mensajes/archivos  tipo no válido (esperado 400) ===
+{"error":"El tipo debe ser audio, img o file"}
+OK (HTTP 400)
+
+=== POST /mensajes/archivos  sin archivo (esperado 400) ===
+{"error":"Falta el campo archivo"}
+OK (HTTP 400)
+
+=== POST /mensajes/archivos  remitente que no pertenece al hilo (esperado 400) ===
+{"error":"En admin-abogado-1 solo escriben admin y abogado"}
+OK (HTTP 400)
+
+=== PUT /mensajes/leidos?hilo=cliente-1&lector=abogado  el abogado abre el chat (esperado 200) ===
+{"actualizados":2,"mensaje":"Mensajes marcados como leídos"}
+OK (HTTP 200)
+
+=== PUT /mensajes/leidos?hilo=cliente-1&lector=juez  lector no válido (esperado 400) ===
+{"error":"Faltan el hilo o el lector (abogado, cliente o admin)"}
+OK (HTTP 400)
+
+=== PUT /mensajes/leidos  sin hilo (esperado 400) ===
+{"error":"Faltan el hilo o el lector (abogado, cliente o admin)"}
+OK (HTTP 400)
+
+=== DELETE /mensajes/83  eliminar la nota de voz (y su archivo) (esperado 200) ===
+{"mensaje":"Mensaje eliminado"}
+OK (HTTP 200)
+
+=== GET /uploads/mensajes/83-audio.webm  el archivo ya se borró (esperado 404) ===
+{"error":"No existe la ruta"}
+OK (HTTP 404)
+
+=== DELETE /mensajes/83  ya no existe (esperado 404) ===
+{"error":"No existe el mensaje 83"}
+OK (HTTP 404)
+
+=== DELETE /mensajes/81  borrar el texto del cliente (esperado 200) ===
+{"mensaje":"Mensaje eliminado"}
+OK (HTTP 200)
+
+=== DELETE /mensajes/82  borrar el texto del admin (esperado 200) ===
+{"mensaje":"Mensaje eliminado"}
+OK (HTTP 200)
+
+=== DELETE /mensajes/84  borrar la imagen (esperado 200) ===
+{"mensaje":"Mensaje eliminado"}
+OK (HTTP 200)
+
+=== DELETE /mensajes/85  borrar el documento PDF (esperado 200) ===
+{"mensaje":"Mensaje eliminado"}
+OK (HTTP 200)
+
+=== GET /notificaciones?usuarioId=2  avisos del Dr. Juan Ramírez (esperado 200) ===
+[{"fechaHora":"2026-11-22T20:50:01.350334","id":86,"leida":false,"mensaje":"Nuevo mensaje del Administrador","usuarioId":2},{"fechaHora":"2026-11-22T20:50:01.194246","id":85,"leida":false,"mensaje":"Nuevo mensaje de Carlos Vega","usuarioId":2},{"fechaHora":"2026-11-22T20:50:01.051893","id":84,"leida":false,"mensaje":"Nuevo mensaje del Administrador","usuarioId":2},{"fechaHora":"2026-11-22T20:50:01.010093","id":83,"leida":false,"mensaje":"Nuevo mensaje de Carlos Vega","usuarioId":2}]
+OK (HTTP 200)
+
+=== GET /notificaciones  sin usuarioId (esperado 400) ===
+{"error":"Falta el usuarioId"}
+OK (HTTP 400)
+
+=== POST /notificaciones  crear notificación (esperado 200) ===
+{"fechaHora":"2026-11-22T20:50:01.956624557","id":88,"leida":false,"mensaje":"Prueba de notificación","usuarioId":1}
+OK (HTTP 200)
+
+=== POST /notificaciones  sin mensaje (@Valid) (esperado 400) ===
+{"error":"Falta el mensaje"}
+OK (HTTP 400)
+
+=== POST /notificaciones  usuario que no existe (esperado 404) ===
+{"error":"No existe el usuario 999"}
+OK (HTTP 404)
+
+=== PUT /notificaciones/leidas?usuarioId=2  marcar todas como leídas (esperado 200) ===
+{"actualizadas":4,"mensaje":"Notificaciones marcadas como leídas"}
+OK (HTTP 200)
+
+=== PUT /notificaciones/leidas?usuarioId=999  usuario que no existe (esperado 404) ===
+{"error":"No existe el usuario 999"}
+OK (HTTP 404)
+
+=== DELETE /notificaciones/88  eliminar notificación (esperado 200) ===
+{"mensaje":"Notificación eliminada"}
+OK (HTTP 200)
+
+=== DELETE /notificaciones/88  ya no existe (esperado 404) ===
+{"error":"No existe la notificación 88"}
+OK (HTTP 404)
+
+=== DELETE /notificaciones/86  borrar aviso de un mensaje de prueba (esperado 200) ===
+{"mensaje":"Notificación eliminada"}
+OK (HTTP 200)
+
+=== DELETE /notificaciones/85  borrar aviso de un mensaje de prueba (esperado 200) ===
+{"mensaje":"Notificación eliminada"}
+OK (HTTP 200)
+
+=== DELETE /notificaciones/84  borrar aviso de un mensaje de prueba (esperado 200) ===
+{"mensaje":"Notificación eliminada"}
+OK (HTTP 200)
+
+=== DELETE /notificaciones/83  borrar aviso de un mensaje de prueba (esperado 200) ===
+{"mensaje":"Notificación eliminada"}
+OK (HTTP 200)
+
+=== POST /eventos  crear evento (esperado 200) ===
+{"alcance":"abogado-1","color":"#D4AF37","descripcion":"Llevar contrato y acta notarial","fecha":"2026-11-28","hora":"10:00","id":20,"lugar":"Juzgado 5","titulo":"Audiencia Carlos Vega","usuarioId":2}
+OK (HTTP 200)
+
+=== POST /eventos  sin título (se guarda como Evento) (esperado 200) ===
+{"alcance":"abogado-1","color":"#D4AF37","descripcion":null,"fecha":"2026-12-03","hora":null,"id":21,"lugar":null,"titulo":"Evento","usuarioId":2}
+OK (HTTP 200)
+
+=== POST /eventos  color no válido (esperado 400) ===
+{"error":"El color #000000 no es válido"}
+OK (HTTP 400)
+
+=== POST /eventos  alcance no válido (esperado 400) ===
+{"error":"El alcance debe ser admin o abogado-{id}"}
+OK (HTTP 400)
+
+=== POST /eventos  hora con formato incorrecto (esperado 400) ===
+{"error":"El JSON no es válido o tiene un dato con formato incorrecto"}
+OK (HTTP 400)
+
+=== POST /eventos  sin fecha (@Valid) (esperado 400) ===
+{"error":"Falta la fecha"}
+OK (HTTP 400)
+
+=== POST /eventos  usuario que no existe (esperado 404) ===
+{"error":"No existe el usuario 999"}
+OK (HTTP 404)
+
+=== GET /eventos?alcance=abogado-1  agenda completa del Dr. Juan Ramírez (esperado 200) ===
+[{"alcance":"abogado-1","color":"#D4AF37","descripcion":"Llevar contrato y acta notarial","fecha":"2026-11-28","hora":"10:00","id":20,"lugar":"Juzgado 5","titulo":"Audiencia Carlos Vega","usuarioId":2},{"alcance":"abogado-1","color":"#D4AF37","descripcion":null,"fecha":"2026-12-03","hora":null,"id":21,"lugar":null,"titulo":"Evento","usuarioId":2}]
+OK (HTTP 200)
+
+=== GET /eventos?alcance=abogado-1&anio=2026&mes=11  solo noviembre (esperado 200) ===
+[{"alcance":"abogado-1","color":"#D4AF37","descripcion":"Llevar contrato y acta notarial","fecha":"2026-11-28","hora":"10:00","id":20,"lugar":"Juzgado 5","titulo":"Audiencia Carlos Vega","usuarioId":2}]
+OK (HTTP 200)
+
+=== GET /eventos?alcance=admin&anio=2026  falta el mes (esperado 400) ===
+{"error":"Indica anio y mes juntos"}
+OK (HTTP 400)
+
+=== GET /eventos?alcance=admin&anio=2026&mes=13  mes no válido (esperado 400) ===
+{"error":"El mes debe estar entre 1 y 12"}
+OK (HTTP 400)
+
+=== GET /eventos  sin alcance (esperado 400) ===
+{"error":"Falta el alcance"}
+OK (HTTP 400)
+
+=== PUT /eventos/20  cambiar hora y color (esperado 200) ===
+{"alcance":"abogado-1","color":"#C0392B","descripcion":"Se movió la hora","fecha":"2026-11-28","hora":"12:30","id":20,"lugar":"Juzgado 5","titulo":"Audiencia Carlos Vega","usuarioId":2}
+OK (HTTP 200)
+
+=== PUT /eventos/20  color no válido (esperado 400) ===
+{"error":"El color rojo no es válido"}
+OK (HTTP 400)
+
+=== PUT /eventos/999  evento que no existe (esperado 404) ===
+{"error":"No existe el evento 999"}
+OK (HTTP 404)
+
+=== DELETE /eventos/20  eliminar evento (esperado 200) ===
+{"mensaje":"Evento eliminado"}
+OK (HTTP 200)
+
+=== DELETE /eventos/20  ya no existe (esperado 404) ===
+{"error":"No existe el evento 20"}
+OK (HTTP 404)
+
+=== DELETE /eventos/21  borrar el evento sin título (esperado 200) ===
+{"mensaje":"Evento eliminado"}
+OK (HTTP 200)
+
+=== POST /contactos  contacto del admin (esperado 200) ===
+{"email":"contacto@notaria12.mx","id":21,"nombre":"Notaría 12","notas":"Escrituras","propietarioId":1,"propietarioTipo":"ADMIN","telefono":"55 2222 3333"}
+OK (HTTP 200)
+
+=== POST /contactos  contacto de un abogado (usuario 2) (esperado 200) ===
+{"email":null,"id":22,"nombre":"Perito Gómez","notas":null,"propietarioId":2,"propietarioTipo":"ABOGADO","telefono":"55 4444 5555"}
+OK (HTTP 200)
+
+=== POST /contactos  el usuario 1 no es ABOGADO (esperado 400) ===
+{"error":"El usuario 1 no es ABOGADO"}
+OK (HTTP 400)
+
+=== POST /contactos  propietario que no existe (esperado 404) ===
+{"error":"No existe el usuario propietario 999"}
+OK (HTTP 404)
+
+=== POST /contactos  propietarioTipo no válido (esperado 400) ===
+{"error":"El propietarioTipo debe ser ADMIN o ABOGADO"}
+OK (HTTP 400)
+
+=== POST /contactos  sin nombre (@Valid) (esperado 400) ===
+{"error":"Falta el nombre"}
+OK (HTTP 400)
+
+=== GET /contactos  todos los contactos (esperado 200) ===
+[{"email":"contacto@notaria12.mx","id":21,"nombre":"Notaría 12","notas":"Escrituras","propietarioId":1,"propietarioTipo":"ADMIN","telefono":"55 2222 3333"},{"email":null,"id":22,"nombre":"Perito Gómez","notas":null,"propietarioId":2,"propietarioTipo":"ABOGADO","telefono":"55 4444 5555"}]
+OK (HTTP 200)
+
+=== GET /contactos?propietarioTipo=ADMIN&propietarioId=1  contactos del admin (esperado 200) ===
+[{"email":"contacto@notaria12.mx","id":21,"nombre":"Notaría 12","notas":"Escrituras","propietarioId":1,"propietarioTipo":"ADMIN","telefono":"55 2222 3333"}]
+OK (HTTP 200)
+
+=== GET /contactos?propietarioTipo=OTRO  tipo no válido (esperado 400) ===
+{"error":"El propietarioTipo debe ser ADMIN o ABOGADO"}
+OK (HTTP 400)
+
+=== PUT /contactos/21  editar contacto (esperado 200) ===
+{"email":"contacto@notaria12.mx","id":21,"nombre":"Notaría 12 (Lic. Pérez)","notas":"Escrituras y poderes","propietarioId":1,"propietarioTipo":"ADMIN","telefono":"55 2222 3333"}
+OK (HTTP 200)
+
+=== PUT /contactos/999  contacto que no existe (esperado 404) ===
+{"error":"No existe el contacto 999"}
+OK (HTTP 404)
+
+=== DELETE /contactos/21  eliminar contacto (esperado 200) ===
+{"mensaje":"Contacto eliminado"}
+OK (HTTP 200)
+
+=== DELETE /contactos/21  ya no existe (esperado 404) ===
+{"error":"No existe el contacto 21"}
+OK (HTTP 404)
+
+=== DELETE /contactos/22  borrar el contacto del abogado (esperado 200) ===
+{"mensaje":"Contacto eliminado"}
+OK (HTTP 200)
+
+=====================================================================
+Pruebas revisadas: 190    Fallas: 0
+=====================================================================

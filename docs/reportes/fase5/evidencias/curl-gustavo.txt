@@ -1,0 +1,250 @@
+
+=== GET /  página de estado del backend (esperado 200) ===
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juris Magna — Estado del backend</title>
+
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f5f3ee;
+            color: #1a1a2e;
+            margin: 0;
+            padding: 24px 16px;
+        }
+
+        main {
+            max-width: 860px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            margin: 0;
+            color: #1a1a2e;
+        }
+
+        .estado {
+            displa ...
+OK (HTTP 200)
+La página muestra: Backend funcionando
+
+=== GET /no-existe  ruta que no existe (esperado 404) ===
+{"error":"No existe la ruta"}
+OK (HTTP 404)
+
+=== DELETE /finanzas  método no permitido (esperado 405) ===
+{"error":"Método HTTP no permitido en esta ruta"}
+OK (HTTP 405)
+
+=== POST /sesiones  login del admin (esperado 200) ===
+{"usuarioId":1,"rol":"ADMIN","nombre":"Administrador","perfilId":null}
+OK (HTTP 200)
+
+=== POST /sesiones  login de un abogado (esperado 200) ===
+{"usuarioId":2,"rol":"ABOGADO","nombre":"Dr. Juan Ramírez","perfilId":1}
+OK (HTTP 200)
+
+=== POST /sesiones  login de un cliente (devuelve su nombre real) (esperado 200) ===
+{"usuarioId":4,"rol":"CLIENTE","nombre":"Carlos Vega","perfilId":1}
+OK (HTTP 200)
+
+=== POST /sesiones  contraseña incorrecta (esperado 401) ===
+{"error":"Usuario, contraseña o rol incorrectos"}
+OK (HTTP 401)
+
+=== POST /sesiones  rol que no corresponde (esperado 401) ===
+{"error":"Usuario, contraseña o rol incorrectos"}
+OK (HTTP 401)
+
+=== POST /sesiones  JSON mal escrito (esperado 400) ===
+{"error":"El JSON no es válido o tiene un dato con formato incorrecto"}
+OK (HTTP 400)
+
+=== GET /usuarios/1  perfil del admin (esperado 200) ===
+{"activo":true,"email":"admin@jurismagna.mx","fotoUrl":null,"id":1,"nombre":"Administrador","rol":"ADMIN","telefono":"55 0000 0000","username":"admin"}
+OK (HTTP 200)
+
+=== GET /usuarios/999  usuario que no existe (esperado 404) ===
+{"error":"No existe el usuario 999"}
+OK (HTTP 404)
+
+=== PUT /usuarios/1  editar perfil del admin (esperado 200) ===
+{"activo":true,"email":"admin@jurismagna.mx","fotoUrl":null,"id":1,"nombre":"Administrador","rol":"ADMIN","telefono":"55 0000 0000","username":"admin"}
+OK (HTTP 200)
+
+=== GET /abogados  listar abogados con sus indicadores (esperado 200) ===
+[{"casosActivos":2,"casosGanados":1,"cedula":"12345678","clientes":2,"edad":45,"efectividad":33,"email":"juan@jurismagna.mx","especialidad":"Derecho Civil","estado":"Activo","estudios":"LLM Harvard","experiencia":"20 años","fotoUrl":null,"id":1,"nombre":"Dr. Juan Ramírez","telefono":"55 1234 5678","totalCasos":3,"username":"jramirez","usuarioId":2},{"casosActivos":1,"casosGanados":0,"cedula":"87654321","clientes":1,"edad":38,"efectividad":0,"email":"sofia@jurismagna.mx","especialidad":"Derecho Penal","estado":"Activo","estudios":"Doctorado UNAM","experiencia":"12 años","fotoUrl":null,"id":2,"n ...
+OK (HTTP 200)
+
+=== GET /abogados/1  detalle de un abogado (esperado 200) ===
+{"casosActivos":2,"casosGanados":1,"cedula":"12345678","clientes":2,"edad":45,"efectividad":33,"email":"juan@jurismagna.mx","especialidad":"Derecho Civil","estado":"Activo","estudios":"LLM Harvard","experiencia":"20 años","fotoUrl":null,"id":1,"nombre":"Dr. Juan Ramírez","telefono":"55 1234 5678","totalCasos":3,"username":"jramirez","usuarioId":2}
+OK (HTTP 200)
+
+=== GET /abogados/999  abogado que no existe (esperado 404) ===
+{"error":"No existe el abogado 999"}
+OK (HTTP 404)
+
+=== GET /abogados/abc  id que no es número (esperado 400) ===
+{"error":"El valor de id no es válido"}
+OK (HTTP 400)
+
+=== POST /abogados  crear abogado y su usuario (esperado 200) ===
+{"casosActivos":0,"casosGanados":0,"cedula":"11223344","clientes":0,"edad":30,"efectividad":0,"email":"andrea@jurismagna.mx","especialidad":"Derecho Laboral","estado":"Activo","estudios":"Licenciatura UV","experiencia":"5 años","fotoUrl":null,"id":16,"nombre":"Lic. Andrea Prueba","telefono":"228 123 4567","totalCasos":0,"username":"aprueba","usuarioId":31}
+OK (HTTP 200)
+
+=== POST /abogados  usuario repetido (esperado 409) ===
+{"error":"El usuario jramirez ya existe"}
+OK (HTTP 409)
+
+=== POST /abogados  sin contraseña (esperado 400) ===
+{"error":"Faltan el usuario o la contraseña"}
+OK (HTTP 400)
+
+=== POST /abogados  sin nombre (@Valid) (esperado 400) ===
+{"error":"Falta el nombre"}
+OK (HTTP 400)
+
+=== PUT /abogados/16  editar abogado (esperado 200) ===
+{"casosActivos":0,"casosGanados":0,"cedula":"11223344","clientes":0,"edad":31,"efectividad":0,"email":"andrea@jurismagna.mx","especialidad":"Derecho Laboral","estado":"Activo","estudios":"Maestría UV","experiencia":"6 años","fotoUrl":null,"id":16,"nombre":"Lic. Andrea Prueba Ruiz","telefono":"228 123 4567","totalCasos":0,"username":"aprueba","usuarioId":31}
+OK (HTTP 200)
+
+=== PUT /abogados/16  estado no válido (esperado 400) ===
+{"error":"El estado debe ser Activo o Inactivo"}
+OK (HTTP 400)
+
+=== PUT /abogados/999  abogado que no existe (esperado 404) ===
+{"error":"No existe el abogado 999"}
+OK (HTTP 404)
+
+=== PUT /abogados/16/password  cambiar contraseña (esperado 200) ===
+{"mensaje":"Contraseña actualizada"}
+OK (HTTP 200)
+
+=== PUT /abogados/16/password  contraseña muy corta (esperado 400) ===
+{"error":"La contraseña debe tener al menos 4 caracteres"}
+OK (HTTP 400)
+
+=== POST /sesiones  login con la contraseña nueva (esperado 200) ===
+{"usuarioId":31,"rol":"ABOGADO","nombre":"Lic. Andrea Prueba Ruiz","perfilId":16}
+OK (HTTP 200)
+
+=== POST /abogados/16/foto  subir foto (esperado 200) ===
+{"fotoUrl":"/uploads/abogados/16.png"}
+OK (HTTP 200)
+
+=== GET /uploads/abogados/16.png  la foto se puede ver (esperado 200) ===
+
+OK (HTTP 200)
+
+=== POST /abogados/16/foto  archivo que no es imagen (esperado 400) ===
+{"error":"Tipo de archivo no permitido; se aceptan: jpg, jpeg, png, webp"}
+OK (HTTP 400)
+
+=== POST /abogados/16/foto  sin el campo foto (esperado 400) ===
+{"error":"Falta el campo foto"}
+OK (HTTP 400)
+
+=== POST /usuarios/31/foto  subir foto de perfil (esperado 200) ===
+{"fotoUrl":"/uploads/usuarios/31.png"}
+OK (HTTP 200)
+
+=== DELETE /abogados/1  abogado con clientes y casos (esperado 409) ===
+{"error":"No se puede eliminar: el abogado todavía tiene clientes o casos asignados"}
+OK (HTTP 409)
+
+=== DELETE /abogados/16  eliminar abogado y su usuario (esperado 200) ===
+{"mensaje":"Abogado eliminado"}
+OK (HTTP 200)
+
+=== DELETE /abogados/16  ya no existe (esperado 404) ===
+{"error":"No existe el abogado 16"}
+OK (HTTP 404)
+
+=== GET /uploads/abogados/16.png  la foto del abogado eliminado ya se borró (esperado 404) ===
+
+OK (HTTP 404)
+
+=== GET /uploads/usuarios/31.png  la foto de su usuario también se borró (esperado 404) ===
+
+OK (HTTP 404)
+
+=== GET /dashboards/admin  indicadores del administrador (esperado 200) ===
+{"personal":5,"abogados":2,"casos":{"total":5,"activos":2,"enProceso":1,"ganados":1,"perdidos":1},"efectividadCerrados":50,"clientesActivos":3,"totalClientes":3,"honorariosTotales":168000.00,"finanzas":{"mes":"2026-10","nombreMes":"Octubre","nombreMesAnterior":"Septiembre","capitalOperativo":1210800.00,"capitalTendencia":48.8,"rentabilidad":45.1,"rentabilidadTendencia":-20.2,"facturacionMes":880000.00,"facturacionTendencia":27.5,"cobradoMes":700000.00,"porcentajeCobrado":79.5,"cobrosPendientes":0,"cobrosPendientesCambio":0}}
+OK (HTTP 200)
+
+=== GET /dashboards/abogados/1  indicadores del abogado (esperado 200) ===
+{"abogadoId":1,"casos":{"total":3,"activos":1,"enProceso":1,"ganados":1,"perdidos":0},"efectividad":33,"efectividadCerrados":100,"clientes":2,"satisfaccion":53}
+OK (HTTP 200)
+
+=== GET /dashboards/abogados/999  abogado que no existe (esperado 404) ===
+{"error":"No existe el abogado 999"}
+OK (HTTP 404)
+
+=== GET /finanzas?meses=3  reporte de los últimos 3 meses (esperado 200) ===
+{"meses":[{"mes":"2026-08","nombre":"Agosto","ingresos":600000.00,"egresos":237000.00},{"mes":"2026-09","nombre":"Septiembre","ingresos":690000.00,"egresos":239200.00},{"mes":"2026-10","nombre":"Octubre","ingresos":880000.00,"egresos":243000.00}],"gastosPorConcepto":{"Nómina":540000.00,"Renta":135000.00,"Servicios":44200.00,"Otros":0},"totalIngresos":2170000.00,"retencionFiscal":240000.00,"ingresosNetos":1930000.00,"totalEgresos":719200.00,"neto":1210800.00,"fondosDisponibles":1210800.00,"rentabilidad":45.1,"rentabilidadTendencia":-20.2,"registroIngresos":[{"concepto":"Honorarios","fecha":"202 ...
+OK (HTTP 200)
+
+=== GET /finanzas?meses=13  meses fuera de rango (esperado 400) ===
+{"error":"El parámetro meses debe estar entre 1 y 12"}
+OK (HTTP 400)
+
+=== GET /finanzas?meses=abc  meses no es número (esperado 400) ===
+{"error":"El valor de meses no es válido"}
+OK (HTTP 400)
+
+=== GET /movimientos  listar movimientos (esperado 200) ===
+[{"concepto":"Renta","fecha":"2026-08-05","id":4,"monto":45000.00,"tipo":"EGRESO"},{"concepto":"Honorarios","fecha":"2026-08-15","id":1,"monto":480000.00,"tipo":"INGRESO"},{"concepto":"Consultas y asesorías","fecha":"2026-08-20","id":2,"monto":120000.00,"tipo":"INGRESO"},{"concepto":"Servicios","fecha":"2026-08-25","id":5,"monto":12000.00,"tipo":"EGRESO"},{"concepto":"Nómina","fecha":"2026-08-30","id":3,"monto":180000.00,"tipo":"EGRESO"},{"concepto":"Renta","fecha":"2026-09-05","id":9,"monto":45000.00,"tipo":"EGRESO"},{"concepto":"Honorarios","fecha":"2026-09-15","id":6,"monto":580000.00,"tipo ...
+OK (HTTP 200)
+
+=== GET /movimientos?anio=2026&mes=10  movimientos de octubre (esperado 200) ===
+[{"concepto":"Renta","fecha":"2026-10-05","id":15,"monto":45000.00,"tipo":"EGRESO"},{"concepto":"Honorarios","fecha":"2026-10-15","id":11,"monto":700000.00,"tipo":"INGRESO"},{"concepto":"Consultas y asesorías","fecha":"2026-10-20","id":12,"monto":140000.00,"tipo":"INGRESO"},{"concepto":"Otros","fecha":"2026-10-22","id":13,"monto":40000.00,"tipo":"INGRESO"},{"concepto":"Servicios","fecha":"2026-10-25","id":16,"monto":18000.00,"tipo":"EGRESO"},{"concepto":"Nómina","fecha":"2026-10-30","id":14,"monto":180000.00,"tipo":"EGRESO"},{"concepto":"Retención fiscal","fecha":"2026-10-31","id":17,"monto":2 ...
+OK (HTTP 200)
+
+=== GET /movimientos?mes=10  falta el año (esperado 400) ===
+{"error":"Indica anio y mes juntos"}
+OK (HTTP 400)
+
+=== GET /movimientos?anio=2026&mes=13  mes no válido (esperado 400) ===
+{"error":"El mes debe estar entre 1 y 12"}
+OK (HTTP 400)
+
+=== POST /movimientos  crear un ingreso (esperado 200) ===
+{"concepto":"Honorarios","fecha":"2026-10-12","id":30,"monto":15000,"tipo":"INGRESO"}
+OK (HTTP 200)
+
+=== POST /movimientos  concepto que no corresponde al tipo (esperado 400) ===
+{"error":"El concepto Nómina no corresponde a un INGRESO"}
+OK (HTTP 400)
+
+=== POST /movimientos  monto negativo (@Valid) (esperado 400) ===
+{"error":"El monto debe ser mayor que 0"}
+OK (HTTP 400)
+
+=== POST /movimientos  faltan campos (@Valid) (esperado 400) ===
+{"error":"Falta el monto, Falta la fecha, Falta el concepto"}
+OK (HTTP 400)
+
+=== POST /movimientos  fecha con formato incorrecto (esperado 400) ===
+{"error":"El JSON no es válido o tiene un dato con formato incorrecto"}
+OK (HTTP 400)
+
+=== PUT /movimientos/30  editar movimiento (esperado 200) ===
+{"concepto":"Consultas y asesorías","fecha":"2026-10-13","id":30,"monto":18000,"tipo":"INGRESO"}
+OK (HTTP 200)
+
+=== PUT /movimientos/999  movimiento que no existe (esperado 404) ===
+{"error":"No existe el movimiento 999"}
+OK (HTTP 404)
+
+=== DELETE /movimientos/30  eliminar movimiento (esperado 200) ===
+{"mensaje":"Movimiento eliminado"}
+OK (HTTP 200)
+
+=== DELETE /movimientos/30  ya no existe (esperado 404) ===
+{"error":"No existe el movimiento 30"}
+OK (HTTP 404)
+

@@ -115,7 +115,7 @@ CREATE TABLE IF NOT EXISTS cliente (
 );
 
 -- Casos (expedientes). El backend genera numero_expediente: EXP-0001, ...
--- materia admite las 18 del formulario original y se valida en el servicio:
+-- materia admite las 18 del formulario de casos y se valida en el servicio:
 --   Civil, Penal, Mercantil, Familiar, Laboral, Administrativo, Agrario,
 --   Constitucional, Fiscal / Tributario, Ambiental, Internacional,
 --   Corporativo, Inmobiliario, Migratorio, Seguridad Social,

@@ -293,7 +293,10 @@ CLIENTE_ID=$(id_creado)
 
 probar "GET /notificaciones?usuarioId=1  el admin recibe el aviso del cliente nuevo" 200 "$URL/notificaciones?usuarioId=1"
 
-if echo "$CUERPO" | grep -q "agregó a Laura Prueba"; then
+# id del aviso, para borrarlo al final y no dejar datos de prueba
+AVISO_ID=$(echo "$CUERPO" | grep -o '{[^}]*agregó a Laura Prueba[^}]*}' | head -n 1 | grep -o '"id":[0-9]*' | cut -d: -f2)
+
+if [ -n "$AVISO_ID" ]; then
     echo "Aviso encontrado: Dr. Juan Ramírez agregó a Laura Prueba"
 else
     echo "FALLA: no apareció el aviso del cliente nuevo"
@@ -438,6 +441,8 @@ probar "GET /casos/$CASO_ID/carpetas  el caso ya no existe" 404 "$URL/casos/$CAS
 probar "DELETE /clientes/$CLIENTE_ID  eliminar cliente sin casos (y su usuario)" 200 -X DELETE "$URL/clientes/$CLIENTE_ID"
 
 probar "DELETE /clientes/$CLIENTE_ID  ya no existe" 404 -X DELETE "$URL/clientes/$CLIENTE_ID"
+
+probar "DELETE /notificaciones/$AVISO_ID  borrar el aviso del cliente de prueba" 200 -X DELETE "$URL/notificaciones/$AVISO_ID"
 
 probar "POST /sesiones  el usuario del cliente eliminado ya no entra" 401 -X POST "$URL/sesiones" -H "$JSON" \
     -d '{"username": "lprueba", "password": "cliente123", "rol": "CLIENTE"}'

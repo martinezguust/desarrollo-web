@@ -52,7 +52,7 @@ function pintarCasos(casos) {
                 <td><span class="exp-id">${caso.numeroExpediente}</span></td>
                 <td>${escaparHtml(caso.clienteNombre || "-")}</td>
                 <td><span class="badge badge-blue">${escaparHtml(caso.materia)}</span></td>
-                <td><span class="badge ${claseEstado(caso.estado)}">${caso.estado}</span></td>
+                <td><span class="badge ${claseEstado(caso.estado)}">${nombreEstado(caso.estado)}</span></td>
                 <td>${formatoFecha(caso.fechaInicio)}</td>
                 <td>
                     <div class="action-btns">
@@ -195,7 +195,7 @@ function abrirEditarCaso(id) {
         })
 }
 
-// Al editar, el modal se queda abierto con el aviso verde (como el diseño original)
+// Al editar, el modal se queda abierto con el aviso verde
 function guardarCaso() {
     let id = $("nca-edit-id").value
 

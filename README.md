@@ -214,10 +214,10 @@ abogado 1 ──── *    nota
 | `nota` | id, abogado_id (FK), titulo, contenido (TEXT), completada, fecha | Notas privadas del abogado |
 
 **Reglas:**
-- `materia` acepta las 18 materias del formulario original: Civil, Penal, Mercantil, Familiar, Laboral, Administrativo, Agrario, Constitucional, Fiscal / Tributario, Ambiental, Internacional, Corporativo, Inmobiliario, Migratorio, Seguridad Social, Propiedad Intelectual, Concursal / Quiebras y Electoral. Se guarda como texto y se valida en el servicio.
+- `materia` acepta las 18 materias del formulario de casos: Civil, Penal, Mercantil, Familiar, Laboral, Administrativo, Agrario, Constitucional, Fiscal / Tributario, Ambiental, Internacional, Corporativo, Inmobiliario, Migratorio, Seguridad Social, Propiedad Intelectual, Concursal / Quiebras y Electoral. Se guarda como texto y se valida en el servicio.
 - Cuando un caso pasa a `Ganado`, `Perdido` o `Cancelado` y no tiene `fecha_fin`, el backend la llena con la fecha del día. Esos tres estados forman el archivo histórico.
 - Al borrar un caso se borran sus carpetas, y al borrar una carpeta se borran sus ligas (`ON DELETE CASCADE`).
-- No hay tabla de documentos: los documentos del cliente se consultan con el enlace a Drive (`cliente.drive_url` o `caso.drive_url`), como en el diseño original.
+- No hay tabla de documentos: los documentos del cliente se consultan con el enlace a Drive (`cliente.drive_url` o `caso.drive_url`).
 
 ### Tablas de Luisa
 
@@ -552,7 +552,7 @@ Respuesta de `GET /clientes/{id}` (y de cada elemento de `GET /clientes`):
 }
 ```
 
-- `q` busca en el nombre del cliente (como el buscador original).
+- `q` busca en el nombre del cliente (es el buscador de la página de clientes).
 - `PUT /clientes/{id}` usa el mismo cuerpo. `password` es opcional: si llega vacío, la contraseña no cambia.
 - `POST` también crea la notificación "{abogado} agregó a {cliente}" para el admin (usa el servicio de notificaciones de Luisa).
 - `400` si falta el nombre, el abogado, el usuario o la contraseña (al crear), o si `avance` no está entre 0 y 100 o `honorarios` es negativo.
@@ -615,7 +615,7 @@ Respuesta:
 Respuesta: `{ "id": 1, "carpetaId": 1, "nombre": "Escritura", "url": "https://drive.google.com/escritura" }`
 
 - La carpeta toma la fecha del día al crearse.
-- La liga requiere `url`; si no trae `nombre`, se usa la URL como nombre (como en el diseño original).
+- La liga requiere `url`; si no trae `nombre`, se usa la URL como nombre.
 - `400` si falta la URL de la liga; `404` si el caso, la carpeta o la liga no existen.
 
 #### Notas
@@ -779,6 +779,21 @@ Es la entrada al sistema y el panel del administrador.
 - **Seguridad:** las contraseñas se guardan con BCrypt y ninguna respuesta incluye `password_hash`. Un abogado `Inactivo` no puede iniciar sesión.
 - **Archivos:** las fotos de abogados y del admin se guardan en `backend/uploads/abogados/` y `backend/uploads/usuarios/`; al eliminar un abogado se borran sus fotos.
 
+### Módulo de Danna — Módulo del abogado
+
+Es el espacio de trabajo de cada abogado: solo ve sus propios clientes, casos y notas.
+
+| Página | Qué hace |
+|---|---|
+| `abogado-dashboard.html` | Bienvenida, indicadores de sus casos, dona de efectividad y rendimiento, con `GET /dashboards/abogados/{id}` de Gustavo |
+| `abogado-clientes.html` | Cuadrícula y tabla de sus clientes con búsqueda; alta (crea también el usuario del cliente), edición de avance, honorarios y comentario, y eliminación. El 💬 abre el chat con el cliente (`chat.js` de Luisa) |
+| `abogado-casos.html` | Tabla de sus casos con filtro por materia y búsqueda; alta (el backend genera el expediente `EXP-0001`, …), edición, eliminación y el drive de cada caso (📂 Carpetas): carpetas y ligas |
+| `abogado-notas.html` | Notas privadas: nueva, editar, marcar como completada y eliminar |
+
+- **JS compartido:** `utilidades.js` (`$()`, formato de moneda y fechas, abrir y cerrar modales, `mostrarExito` y `mostrarError`, colores y nombres de los estados) y `menu.js` (sección activa, fecha, campana de notificaciones, perfil del usuario y cerrar sesión). Los usan las páginas del admin y del abogado.
+- **Backend:** `ClienteControlador`, `CasoControlador`, `CarpetaControlador` (carpetas y ligas) y `NotaControlador`, cada uno con su servicio, más los repositorios y modelos Cliente, Caso, Carpeta, Liga y Nota.
+- **Reglas principales:** no se elimina un cliente que todavía tiene casos (409); un caso solo se puede asignar a un cliente del mismo abogado; al cerrar un caso (`Ganado`, `Perdido` o `Cancelado`) se llena su fecha de fin y pasa al archivo histórico; al crear un cliente, el admin recibe el aviso "{abogado} agregó a {cliente}".
+
 ---
 
 ## 9. Instalación y ejecución
@@ -805,6 +820,49 @@ cd ~
 git clone https://github.com/martinezguust/desarrollo-web.git
 cd desarrollo-web
 ```
+
+### MySQL y base de datos
+
+MySQL corre en **Windows** y el backend se conecta desde WSL con la IP de Windows. Esa IP cambia en cada laptop, por eso nunca va fija en el código: se pasa con la variable `DB_HOST`.
+
+1. Instala **MySQL Server 8** en Windows con el instalador oficial (MySQL Installer). Anota la contraseña de `root`.
+
+2. Revisa que el servicio esté iniciado: en Windows abre "Servicios" (`services.msc`) y busca **MySQL80**; debe decir "En ejecución". Si no, clic derecho → Iniciar.
+
+3. Abre **MySQL Workbench** (o "MySQL 8.0 Command Line Client") como `root` y crea la base de datos y el usuario del proyecto:
+
+    ```sql
+    CREATE DATABASE IF NOT EXISTS jurismagna CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+    CREATE USER IF NOT EXISTS 'listi'@'%' IDENTIFIED BY '123';
+    GRANT ALL PRIVILEGES ON jurismagna.* TO 'listi'@'%';
+    FLUSH PRIVILEGES;
+    ```
+
+    El `'%'` permite que `listi` entre desde cualquier IP, incluida la de WSL. Sin el `GRANT`, el backend falla con `Access denied for user 'listi'`.
+
+4. Permite el puerto 3306 en el firewall de Windows (PowerShell como administrador):
+
+    ```powershell
+    New-NetFirewallRule -DisplayName "MySQL 3306" -Direction Inbound -Protocol TCP -LocalPort 3306 -Action Allow
+    ```
+
+5. Desde WSL, saca la IP de Windows y revisa que el puerto responda:
+
+    ```bash
+    ip route show | grep default | awk '{print $3}'
+    timeout 3 bash -c "echo > /dev/tcp/$(ip route show | grep default | awk '{print $3}')/3306" && echo "MySQL responde"
+    ```
+
+**Las tablas no se crean a mano.** Al arrancar, Hibernate crea o actualiza las tablas (`ddl-auto=update`) y después se carga `backend/src/main/resources/data.sql` con los datos de prueba. `data.sql` usa `INSERT IGNORE` con ids fijos, así que se puede ejecutar cada vez que arranca sin duplicar nada. La estructura completa está documentada en [`database/schema.sql`](database/schema.sql).
+
+**Problemas comunes:**
+
+| Síntoma | Causa y solución |
+|---|---|
+| `Communications link failure` o `Connect timed out` | MySQL80 está detenido, el firewall bloquea el 3306 o `DB_HOST` no es la IP de Windows (pasos 2, 4 y 5) |
+| `Access denied for user 'listi'` | Falta el usuario o el `GRANT` del paso 3, o la contraseña no coincide con `DB_PASS` |
+| `Host '...' is not allowed to connect` | El usuario se creó como `'listi'@'localhost'`; créalo como `'listi'@'%'` |
 
 ### Configurar nginx
 

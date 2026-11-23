@@ -486,6 +486,11 @@ probar "DELETE /notas/$NOTA_ID  ya no existe" 404 -X DELETE "$URL/notas/$NOTA_ID
 echo "audio de prueba" > "$TEMPORAL/audio.webm"
 echo "documento de prueba" > "$TEMPORAL/documento.pdf"
 
+# Último aviso del Dr. Juan Ramírez (usuario 2) antes de mandar mensajes: los
+# avisos que se creen después son de estas pruebas y se borran al final
+ULTIMO_AVISO=$(curl -s "$URL/notificaciones?usuarioId=2" | grep -o '"id":[0-9]*' | cut -d: -f2 | sort -n | tail -n 1)
+ULTIMO_AVISO=${ULTIMO_AVISO:-0}
+
 # ---------- Mensajes de texto ----------
 
 probar "GET /mensajes?hilo=cliente-1  conversación de Carlos Vega" 200 "$URL/mensajes?hilo=cliente-1"
@@ -494,9 +499,11 @@ probar "GET /mensajes  sin hilo" 400 "$URL/mensajes"
 
 probar "POST /mensajes  el cliente escribe (avisa a su abogado)" 200 -X POST "$URL/mensajes" -H "$JSON" \
     -d '{"hilo": "cliente-1", "remitente": "cliente", "texto": "Ya firmé los documentos."}'
+TEXTO_CLIENTE_ID=$(id_creado)
 
 probar "POST /mensajes  el admin escribe a un abogado" 200 -X POST "$URL/mensajes" -H "$JSON" \
     -d '{"hilo": "admin-abogado-1", "remitente": "admin", "texto": "Juan, revisa el expediente EXP-0001 por favor."}'
+TEXTO_ADMIN_ID=$(id_creado)
 
 probar "POST /mensajes  remitente que no pertenece al hilo" 400 -X POST "$URL/mensajes" -H "$JSON" \
     -d '{"hilo": "cliente-1", "remitente": "admin", "texto": "Hola"}'
@@ -521,9 +528,11 @@ probar "GET $AUDIO_URL  el audio se puede descargar" 200 -o /dev/null "$URL$AUDI
 
 probar "POST /mensajes/archivos  imagen del abogado" 200 -X POST "$URL/mensajes/archivos" \
     -F "hilo=cliente-1" -F "remitente=abogado" -F "tipo=img" -F "archivo=@$TEMPORAL/foto.png"
+IMAGEN_ID=$(id_creado)
 
 probar "POST /mensajes/archivos  documento PDF" 200 -X POST "$URL/mensajes/archivos" \
     -F "hilo=admin-abogado-1" -F "remitente=admin" -F "tipo=file" -F "archivo=@$TEMPORAL/documento.pdf"
+DOCUMENTO_ID=$(id_creado)
 
 probar "POST /mensajes/archivos  un .txt enviado como imagen" 400 -X POST "$URL/mensajes/archivos" \
     -F "hilo=cliente-1" -F "remitente=cliente" -F "tipo=img" -F "archivo=@$TEMPORAL/nota.txt"
@@ -551,6 +560,15 @@ probar "GET $AUDIO_URL  el archivo ya se borró" 404 "$URL$AUDIO_URL"
 
 probar "DELETE /mensajes/$AUDIO_ID  ya no existe" 404 -X DELETE "$URL/mensajes/$AUDIO_ID"
 
+# Se borran los demás mensajes de prueba (y sus archivos) para no dejar datos
+probar "DELETE /mensajes/$TEXTO_CLIENTE_ID  borrar el texto del cliente" 200 -X DELETE "$URL/mensajes/$TEXTO_CLIENTE_ID"
+
+probar "DELETE /mensajes/$TEXTO_ADMIN_ID  borrar el texto del admin" 200 -X DELETE "$URL/mensajes/$TEXTO_ADMIN_ID"
+
+probar "DELETE /mensajes/$IMAGEN_ID  borrar la imagen" 200 -X DELETE "$URL/mensajes/$IMAGEN_ID"
+
+probar "DELETE /mensajes/$DOCUMENTO_ID  borrar el documento PDF" 200 -X DELETE "$URL/mensajes/$DOCUMENTO_ID"
+
 # ---------- Notificaciones ----------
 
 probar "GET /notificaciones?usuarioId=2  avisos del Dr. Juan Ramírez" 200 "$URL/notificaciones?usuarioId=2"
@@ -575,6 +593,13 @@ probar "DELETE /notificaciones/$NOTIFICACION_ID  eliminar notificación" 200 -X 
 
 probar "DELETE /notificaciones/$NOTIFICACION_ID  ya no existe" 404 -X DELETE "$URL/notificaciones/$NOTIFICACION_ID"
 
+# Avisos "Nuevo mensaje de ..." que crearon los mensajes de prueba
+for AVISO in $(curl -s "$URL/notificaciones?usuarioId=2" | grep -o '"id":[0-9]*' | cut -d: -f2); do
+    if [ "$AVISO" -gt "$ULTIMO_AVISO" ]; then
+        probar "DELETE /notificaciones/$AVISO  borrar aviso de un mensaje de prueba" 200 -X DELETE "$URL/notificaciones/$AVISO"
+    fi
+done
+
 # ---------- Eventos ----------
 
 probar "POST /eventos  crear evento" 200 -X POST "$URL/eventos" -H "$JSON" \
@@ -592,6 +617,7 @@ EVENTO_ID=$(id_creado)
 
 probar "POST /eventos  sin título (se guarda como Evento)" 200 -X POST "$URL/eventos" -H "$JSON" \
     -d '{"fecha": "2026-12-03", "alcance": "abogado-1", "usuarioId": 2}'
+EVENTO_SIN_TITULO_ID=$(id_creado)
 
 probar "POST /eventos  color no válido" 400 -X POST "$URL/eventos" -H "$JSON" \
     -d '{"titulo": "Junta", "fecha": "2026-11-21", "color": "#000000", "alcance": "admin", "usuarioId": 1}'
@@ -639,6 +665,8 @@ probar "DELETE /eventos/$EVENTO_ID  eliminar evento" 200 -X DELETE "$URL/eventos
 
 probar "DELETE /eventos/$EVENTO_ID  ya no existe" 404 -X DELETE "$URL/eventos/$EVENTO_ID"
 
+probar "DELETE /eventos/$EVENTO_SIN_TITULO_ID  borrar el evento sin título" 200 -X DELETE "$URL/eventos/$EVENTO_SIN_TITULO_ID"
+
 # ---------- Contactos ----------
 
 probar "POST /contactos  contacto del admin" 200 -X POST "$URL/contactos" -H "$JSON" \
@@ -654,6 +682,7 @@ CONTACTO_ID=$(id_creado)
 
 probar "POST /contactos  contacto de un abogado (usuario 2)" 200 -X POST "$URL/contactos" -H "$JSON" \
     -d '{"propietarioTipo": "ABOGADO", "propietarioId": 2, "nombre": "Perito Gómez", "telefono": "55 4444 5555"}'
+CONTACTO_ABOGADO_ID=$(id_creado)
 
 probar "POST /contactos  el usuario 1 no es ABOGADO" 400 -X POST "$URL/contactos" -H "$JSON" \
     -d '{"propietarioTipo": "ABOGADO", "propietarioId": 1, "nombre": "Mal propietario"}'
@@ -689,6 +718,8 @@ probar "PUT /contactos/999  contacto que no existe" 404 -X PUT "$URL/contactos/9
 probar "DELETE /contactos/$CONTACTO_ID  eliminar contacto" 200 -X DELETE "$URL/contactos/$CONTACTO_ID"
 
 probar "DELETE /contactos/$CONTACTO_ID  ya no existe" 404 -X DELETE "$URL/contactos/$CONTACTO_ID"
+
+probar "DELETE /contactos/$CONTACTO_ABOGADO_ID  borrar el contacto del abogado" 200 -X DELETE "$URL/contactos/$CONTACTO_ABOGADO_ID"
 
 
 # =====================================================================

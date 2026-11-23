@@ -111,8 +111,6 @@ probar "GET /usuarios/999  usuario que no existe" 404 "$URL/usuarios/999"
 probar "PUT /usuarios/1  editar perfil del admin" 200 -X PUT "$URL/usuarios/1" -H "$JSON" \
     -d '{"nombre": "Administrador", "email": "admin@jurismagna.mx", "telefono": "55 0000 0000"}'
 
-probar "POST /usuarios/1/foto  subir foto del admin" 200 -X POST "$URL/usuarios/1/foto" \
-    -F "foto=@$TEMPORAL/foto.png"
 
 # ---------- Abogados ----------
 
@@ -138,6 +136,7 @@ probar "POST /abogados  crear abogado y su usuario" 200 -X POST "$URL/abogados" 
         "password": "abogado123"
     }'
 ABOGADO_ID=$(id_creado)
+USUARIO_ID=$(echo "$CUERPO" | grep -o '"usuarioId":[0-9]*' | cut -d: -f2)
 
 probar "POST /abogados  usuario repetido" 409 -X POST "$URL/abogados" -H "$JSON" \
     -d '{"nombre": "Otro", "username": "jramirez", "password": "abogado123"}'
@@ -188,11 +187,21 @@ probar "POST /abogados/$ABOGADO_ID/foto  archivo que no es imagen" 400 -X POST "
 probar "POST /abogados/$ABOGADO_ID/foto  sin el campo foto" 400 -X POST "$URL/abogados/$ABOGADO_ID/foto" \
     -F "otro=@$TEMPORAL/foto.png"
 
+# La foto de perfil de /usuarios se prueba con el usuario del abogado de prueba,
+# así la foto del admin no cambia; se borra al eliminar al abogado
+probar "POST /usuarios/$USUARIO_ID/foto  subir foto de perfil" 200 -X POST "$URL/usuarios/$USUARIO_ID/foto" \
+    -F "foto=@$TEMPORAL/foto.png"
+FOTO_USUARIO_URL=$(echo "$CUERPO" | grep -o '/uploads/[^"]*')
+
 probar "DELETE /abogados/1  abogado con clientes y casos" 409 -X DELETE "$URL/abogados/1"
 
 probar "DELETE /abogados/$ABOGADO_ID  eliminar abogado y su usuario" 200 -X DELETE "$URL/abogados/$ABOGADO_ID"
 
 probar "DELETE /abogados/$ABOGADO_ID  ya no existe" 404 -X DELETE "$URL/abogados/$ABOGADO_ID"
+
+probar "GET $FOTO_URL  la foto del abogado eliminado ya se borró" 404 -o /dev/null "$URL$FOTO_URL"
+
+probar "GET $FOTO_USUARIO_URL  la foto de su usuario también se borró" 404 -o /dev/null "$URL$FOTO_USUARIO_URL"
 
 # ---------- Dashboards ----------
 

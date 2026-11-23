@@ -8,9 +8,9 @@ Proyecto final de la materia **Desarrollo Web** (LISTI, agosto 2026 – enero 20
 
 ## 1. Descripción
 
-Juris Magna nació como prototipo en la materia de Experiencia de Usuario: un solo `index.html` con HTML, CSS y JS juntos y los datos fijos en memoria. Ese prototipo se evaluó con usuarios (SUS y pruebas de usabilidad), por lo que **el diseño visual se conserva**.
+Juris Magna es un sistema web de 3 capas para un despacho de abogados: el administrador gestiona al personal, las finanzas y el archivo de casos; cada abogado lleva sus clientes, casos, notas y agenda; y el cliente consulta desde el celular cómo va su caso y platica con su abogado.
 
-En este proyecto se convierte en un sistema funcional de 3 capas, con backend, base de datos y código ordenado.
+El frontend está hecho con HTML, CSS y JavaScript puros, el backend con Spring Boot y los datos se guardan en MySQL.
 
 ### Problema que resuelve
 
@@ -146,7 +146,7 @@ Cada fase se divide en una subfase por integrante y se trabaja en una rama por s
 
 | ID | Categoría | Requisito | Criterio de aceptación |
 |---|---|---|---|
-| RNF-01 | Usabilidad | Admin y abogado navegables sin capacitación previa | Se conserva el diseño validado (SUS ≥ 70) |
+| RNF-01 | Usabilidad | Admin y abogado navegables sin capacitación previa | Menú lateral con las mismas secciones en todas las páginas y confirmación visual en cada operación |
 | RNF-02 | Accesibilidad | Vista del cliente usable en celulares de gama baja (≥ 4.5") | Compatible con Android |
 | RNF-03 | Rendimiento | Carga rápida en conexión 3G | Menos de 4 s; peso menor a 500 KB sin contar librerías |
 | RNF-04 | Compatibilidad | Funciona en Chrome, Firefox, Safari y Edge | Probado en los 4 navegadores |
@@ -167,7 +167,7 @@ Cada fase se divide en una subfase por integrante y se trabaja en una rama por s
 | R-04 | Desarrollo y ejecución en WSL, con Git y VS Code |
 | R-05 | Repositorio en GitHub llamado `desarrollo-web`, con un release por fase |
 | R-06 | Equipo de 3 integrantes, cada una con su cuenta de GitHub y commits propios |
-| R-07 | El diseño visual del proyecto de UX no se modifica |
+| R-07 | Todas las páginas comparten el mismo diseño visual (paleta, tipografía e iconografía) |
 | R-08 | El uso de IA se documenta; las pruebas unitarias las hace cada integrante |
 | R-09 | Entrega el 23 de noviembre de 2026 |
 | R-10 | Thymeleaf en al menos una vista del backend |
@@ -192,8 +192,8 @@ usuario 1 ──── 0..1 abogado        movimiento (independiente)
 
 **Reglas de `movimiento`:**
 - `monto` siempre es positivo; el `tipo` dice si suma o resta.
-- "Retención fiscal" se guarda como `EGRESO`. En la pantalla aparece en la tabla de ingresos con signo "−" (como en el diseño original), cuenta en el neto y **no** entra en las gráficas de barras ni en la dona de gastos.
-- Los datos de prueba reproducen las cifras del diseño original en agosto, septiembre y octubre de 2026.
+- "Retención fiscal" se guarda como `EGRESO`. En la pantalla aparece en la tabla de ingresos con signo "−", cuenta en el neto y **no** entra en las gráficas de barras ni en la dona de gastos.
+- Los datos de prueba tienen los movimientos de agosto, septiembre y octubre de 2026.
 
 ### Tablas de Danna
 
@@ -354,7 +354,7 @@ Respuesta de `GET /abogados/{id}` (y de cada elemento de `GET /abogados`):
 }
 ```
 
-- `efectividad` = ganados / total de casos × 100 (fórmula de la tabla y del perfil del diseño original).
+- `efectividad` = ganados / total de casos × 100 (es la que se muestra en la tabla y en el perfil).
 - `casosActivos` cuenta los casos `Activo` y `EnProceso`.
 - `POST` → `400` si falta el nombre, el usuario o la contraseña; `409` si el `username` ya existe.
 - `DELETE` → `409` si el abogado todavía tiene clientes o casos asignados.
@@ -394,9 +394,9 @@ Respuesta de `GET /abogados/{id}` (y de cada elemento de `GET /abogados`):
 
 | Campo | Cálculo |
 |---|---|
-| `personal` | abogados + clientes (como en el diseño original) |
+| `personal` | abogados + clientes |
 | `casos.activos` / `enProceso` / `ganados` / `perdidos` | Conteo por estado del caso |
-| `efectividadCerrados` | ganados / (ganados + perdidos) × 100 (fórmula de la dona del diseño original) |
+| `efectividadCerrados` | ganados / (ganados + perdidos) × 100 (es la que se muestra en la dona) |
 | `honorariosTotales` | Σ `cliente.honorarios` |
 | `mes` | Último mes que tiene movimientos |
 | `capitalOperativo` | Σ INGRESO − Σ EGRESO de todos los movimientos hasta ese mes |
@@ -421,9 +421,9 @@ Respuesta de `GET /abogados/{id}` (y de cada elemento de `GET /abogados`):
 }
 ```
 
-- `efectividad` = ganados / total × 100 (KPIs y barras de rendimiento del diseño original).
-- `efectividadCerrados` = ganados / (ganados + perdidos) × 100 (dona del diseño original).
-- `satisfaccion` = mínimo entre `efectividad + 20` y 100 (fórmula del diseño original; la página la muestra sobre 5.0).
+- `efectividad` = ganados / total × 100 (KPIs y barras de rendimiento).
+- `efectividadCerrados` = ganados / (ganados + perdidos) × 100 (dona de efectividad).
+- `satisfaccion` = mínimo entre `efectividad + 20` y 100 (la página la muestra sobre 5.0).
 - `404` si el abogado no existe.
 
 #### Finanzas y movimientos
@@ -757,4 +757,123 @@ Respuesta: el mismo objeto con su `id`.
 
 - `GET /contactos` filtra por `propietarioTipo` y `propietarioId` (los dos opcionales).
 - `400` si falta el nombre o el propietario; `404` si el contacto no existe.
-  - **Reportes de uso de IA:** [Desarrollo web - Reportes de IA](https://uvmx-my.sharepoint.com/:f:/g/personal/zs24013356_estudiantes_uv_mx/IgBp-tp1Fd-YQKcLTQNt-O6jASLZ1KrWnp93V6cwzX8oO5w?e=kfOk4K)
+
+---
+
+## 8. Módulos
+
+### Módulo de Gustavo — Login, administración y finanzas
+
+Es la entrada al sistema y el panel del administrador.
+
+| Página | Qué hace |
+|---|---|
+| `index.html` + `login.js` | Login con selector de rol. Manda `POST /api/sesiones`; si es correcto guarda la sesión con `sesion.js` y abre el inicio del rol. Si falla muestra "Usuario, contraseña o rol incorrectos" |
+| `admin-dashboard.html` | Indicadores del despacho (capital, rentabilidad, facturación, personal, casos), dona de efectividad y rendimiento por abogado, con `GET /dashboards/admin` y `GET /abogados` |
+| `admin-abogados.html` | Tabla de abogados con alta, edición, foto, cambio de contraseña, perfil y eliminación (`/abogados`) |
+| `admin-finanzas.html` | Tarjetas, gráficas de ingresos y egresos (Chart.js), tablas de movimientos con alta y edición, y el botón "Exportar Reporte PDF" (jsPDF) con los datos de `GET /finanzas` |
+| `admin-historico.html` | Casos cerrados con filtro por estado y búsqueda por texto (`GET /casos/historico` de Danna) |
+
+- **JS compartido:** `api.js` concentra todas las llamadas `fetch` (GET, POST, PUT, DELETE y multipart) y convierte los errores `{ "error": ... }` en mensajes; `sesion.js` guarda la sesión en `sessionStorage` y cada página llama a `exigirSesion(rol)`: si no hay sesión o el rol no corresponde, regresa al login.
+- **Backend:** `SesionControlador`, `UsuarioControlador`, `AbogadoControlador`, `DashboardControlador`, `FinanzaControlador` y `PlantillaControlador` (página de estado con Thymeleaf en `GET /`), cada uno con su servicio. `ManejadorErrores` (`@RestControllerAdvice`) devuelve todos los errores del sistema como JSON.
+- **Seguridad:** las contraseñas se guardan con BCrypt y ninguna respuesta incluye `password_hash`. Un abogado `Inactivo` no puede iniciar sesión.
+- **Archivos:** las fotos de abogados y del admin se guardan en `backend/uploads/abogados/` y `backend/uploads/usuarios/`; al eliminar un abogado se borran sus fotos.
+
+---
+
+## 9. Instalación y ejecución
+
+Estos pasos son para un WSL (Ubuntu) recién preparado. El orden es: MySQL → backend → nginx → navegador.
+
+### Requisitos
+
+| Programa | Dónde | Para qué |
+|---|---|---|
+| Java 17 (JDK) | WSL | Compilar y correr el backend (`sudo apt install openjdk-17-jdk`) |
+| Git | WSL | Clonar el repositorio (`sudo apt install git`) |
+| MySQL 8 | Windows | Base de datos `jurismagna` |
+| nginx | WSL | Servir el frontend y pasar `/api` al backend |
+
+No hace falta instalar Maven: el proyecto trae el wrapper `./mvnw`.
+
+### Clonar el repositorio
+
+El repositorio se clona **dentro de WSL** (en tu carpeta personal), no en `/mnt/c/...`:
+
+```bash
+cd ~
+git clone https://github.com/martinezguust/desarrollo-web.git
+cd desarrollo-web
+```
+
+### Configurar nginx
+
+nginx sirve los archivos de `frontend/` en `http://localhost/` y pasa todo lo que empieza con `/api/` al backend (puerto 8081), quitando el `/api`. También entrega los archivos subidos en `/uploads/`. Como todo sale del mismo origen, no hace falta configurar CORS.
+
+1. Instala nginx en WSL:
+
+    ```bash
+    sudo apt update
+    sudo apt install nginx
+    ```
+
+2. Copia la configuración del proyecto cambiando `USUARIO` por tu usuario de WSL (`$USER` lo pone solo):
+
+    ```bash
+    sed "s/USUARIO/$USER/" ~/desarrollo-web/nginx/jurismagna.conf | sudo tee /etc/nginx/conf.d/jurismagna.conf
+    ```
+
+3. Quita el sitio de bienvenida de nginx, que también usa el puerto 80:
+
+    ```bash
+    sudo rm -f /etc/nginx/sites-enabled/default
+    ```
+
+4. Da permiso a nginx de entrar a tu carpeta personal para leer `frontend/`:
+
+    ```bash
+    chmod o+x /home/$USER /home/$USER/desarrollo-web
+    ```
+
+5. Revisa la configuración e inicia nginx:
+
+    ```bash
+    sudo nginx -t
+    sudo service nginx restart
+    ```
+
+6. Con el backend corriendo, comprueba que nginx pasa la API:
+
+    ```bash
+    curl http://localhost/api/abogados
+    ```
+
+    Debe responder la lista de abogados en JSON. Después abre **http://localhost** en el navegador de Windows.
+
+**Problemas comunes:**
+
+| Síntoma | Causa y solución |
+|---|---|
+| `bind() to 0.0.0.0:80 failed` | Otro programa (otro nginx o Apache) usa el puerto 80. Deténlo o cambia `listen 80;` por otro puerto, por ejemplo `listen 8080;`, y entra a `http://localhost:8080` |
+| `403 Forbidden` en `http://localhost` | nginx no puede leer `frontend/`: repite el paso 4 y revisa que la ruta del paso 2 tenga tu usuario |
+| `502 Bad Gateway` en `/api/...` | El backend no está corriendo en el puerto 8081 |
+| `413 Request Entity Too Large` al subir un archivo | La configuración no tiene `client_max_body_size 10M`; vuelve a copiarla (paso 2) |
+
+### Usuarios de prueba
+
+`data.sql` carga estos usuarios al arrancar el backend. En el login primero se elige el rol y después se escribe el usuario y la contraseña.
+
+| Rol | Usuario | Contraseña | Nombre |
+|---|---|---|---|
+| Administrador | `admin` | `admin123` | Administrador |
+| Abogado | `jramirez` | `abogado123` | Dr. Juan Ramírez |
+| Abogado | `smendoza` | `abogado123` | Dra. Sofía Mendoza |
+| Cliente | `cvega` | `cliente123` | Carlos Vega |
+| Cliente | `mtorres` | `cliente123` | María Torres |
+| Cliente | `rsilva` | `cliente123` | Roberto Silva |
+
+---
+
+## 10. Reportes de uso de IA
+
+[Desarrollo web - Reportes de IA](https://uvmx-my.sharepoint.com/:f:/g/personal/zs24013356_estudiantes_uv_mx/IgBp-tp1Fd-YQKcLTQNt-O6jASLZ1KrWnp93V6cwzX8oO5w?e=kfOk4K)

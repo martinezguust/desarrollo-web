@@ -1,5 +1,5 @@
 -- =====================================================================
--- Juris Magna — Datos de prueba (los del DB del diseño original)
+-- Juris Magna — Datos de prueba
 --
 -- Se ejecuta cada vez que arranca el backend. Los INSERT IGNORE con id
 -- fijo hacen que no se dupliquen los datos al reiniciar.
@@ -26,8 +26,7 @@ INSERT IGNORE INTO abogado (id, usuario_id, nombre, edad, especialidad, estudios
     (1, 2, 'Dr. Juan Ramírez',   45, 'Derecho Civil', 'LLM Harvard',    '20 años', '12345678', 'juan@jurismagna.mx',  '55 1234 5678', NULL, 'Activo'),
     (2, 3, 'Dra. Sofía Mendoza', 38, 'Derecho Penal', 'Doctorado UNAM', '12 años', '87654321', 'sofia@jurismagna.mx', '55 9876 5432', NULL, 'Activo');
 
--- Montos de las tablas de finanzas originales (febrero–abril),
--- movidos a agosto–octubre de 2026
+-- Movimientos de agosto, septiembre y octubre de 2026
 INSERT IGNORE INTO movimiento (id, tipo, concepto, monto, fecha) VALUES
     -- Agosto
     (1,  'INGRESO', 'Honorarios',            480000.00, '2026-08-15'),

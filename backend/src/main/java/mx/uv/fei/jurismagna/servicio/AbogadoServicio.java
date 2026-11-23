@@ -131,7 +131,7 @@ public class AbogadoServicio {
         return guardado;
     }
 
-    // No se elimina si todavía tiene clientes o casos; sus notas se borran con él
+    // No se elimina si todavía tiene clientes o casos; sus notas y sus fotos se borran con él
     @Transactional
     public void eliminar(Integer id) {
         Abogado abogado = buscar(id);
@@ -145,6 +145,8 @@ public class AbogadoServicio {
         archivoServicio.eliminar(abogado.getFotoUrl());
 
         Usuario usuario = abogado.getUsuario();
+        archivoServicio.eliminar(usuario.getFotoUrl());
+
         abogadoRepositorio.delete(abogado);
         usuarioRepositorio.delete(usuario);
     }

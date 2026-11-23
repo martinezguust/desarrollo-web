@@ -130,7 +130,7 @@ function cargarDatosAdmin() {
         })
 }
 
-// El modal se crea la primera vez que se abre (como en el diseño original)
+// El modal se crea la primera vez que se abre
 function crearModalPerfilAdmin() {
     if ($("ov-perfil-admin")) {
         return

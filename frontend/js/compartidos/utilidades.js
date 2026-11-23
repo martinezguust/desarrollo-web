@@ -95,6 +95,15 @@ function claseEstado(estado) {
     return clases[estado] || "badge-blue"
 }
 
+// Texto del estado del caso para mostrarlo en pantalla ("EnProceso" -> "En Proceso")
+function nombreEstado(estado) {
+    if (estado === "EnProceso") {
+        return "En Proceso"
+    }
+
+    return estado
+}
+
 // Muestra u oculta la contraseña de un campo (el "ojo")
 function alternarPassword(id) {
     let campo = $(id)
